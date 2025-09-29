@@ -1,0 +1,31 @@
+project "TramDepot"
+   kind "WindowedApp"
+   language "C++"
+   cppdialect "C++23"
+   targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
+
+   warnings "Extra"
+
+   files { "**/**.hpp","**/**.cpp",
+            "tramdepot.lua",
+            _MAIN_SCRIPT,
+   }
+
+   vpaths {
+      ["Core"] = {"Core/**.hpp", "Core/**.cpp"},
+      ["Debug"] = {"Debug/**.hpp", "Debug/**.cpp"},
+      ["Config"] = {"tramdepot.lua",_MAIN_SCRIPT},
+   }
+
+      -- Global includes
+   includedirs {"Debug"}
+
+   links {"d3d11"}
+
+   filter "configurations:Debug"
+      defines { "DEBUG" }
+      symbols "On"
+
+   filter "configurations:Release"
+      defines { "NDEBUG" }
+      optimize "On"

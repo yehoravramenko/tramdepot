@@ -19,7 +19,7 @@ project "TramDepot"
    }
 
       -- Global includes
-   includedirs {"."}
+   includedirs {"Debug"}
 
    links {"d3d11"}
 

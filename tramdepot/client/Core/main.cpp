@@ -2,9 +2,8 @@
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 {
-    TramDepot::Game game;
+    TramDepot::Game game(1280, 720);
 
-    game.createWindow();
     game.MainLoop();
 
     return 0;

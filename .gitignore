@@ -58,3 +58,5 @@ projects/*
 *.rar
 .cache/*
 compile_commands.json
+
+.vs/

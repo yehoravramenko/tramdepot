@@ -47,6 +47,11 @@ void Init()
     isInitialized = true;
 }
 
+void Release()
+{
+    FreeConsole();
+}
+
 void Log(std::string_view msg)
 {
     output(ASCIIColor::Green, "Log", msg);

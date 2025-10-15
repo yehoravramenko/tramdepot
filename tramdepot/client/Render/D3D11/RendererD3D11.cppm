@@ -1,8 +1,8 @@
-#pragma once
-
+module;
 #include <d3d11.h>
+export module TramDepot:RendererD3D11;
 
-#include "../IRenderer.hpp"
+import :IRenderer;
 
 namespace TramDepot
 {

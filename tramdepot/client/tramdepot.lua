@@ -6,15 +6,16 @@ project "TramDepot"
 
    warnings "Extra"
 
-   files { "**/**.hpp","**/**.cpp",
+   files { "**.hpp", "**.cppm", "**.cpp",
             "tramdepot.lua",
             _MAIN_SCRIPT,
    }
 
    vpaths {
       ["Headers/*"] = "**.hpp",
+      ["Modules/*"] = "**.cppm",
       ["Sources/*"] = "**.cpp",
-      ["Resources/*"] = "**/**.rc",
+      ["Resources/*"] = "**/*.rc",
       ["*"] = {"tramdepot.lua",_MAIN_SCRIPT},
    }
 

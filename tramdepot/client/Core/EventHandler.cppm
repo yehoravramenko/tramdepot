@@ -1,9 +1,9 @@
-#pragma once
+export module TramDepot:EventHandler;
 
-#include "Event.hpp"
+import :Event;
 
-#include <queue>
-#include <optional>
+import <queue>;
+import <optional>;
 
 namespace TramDepot
 {

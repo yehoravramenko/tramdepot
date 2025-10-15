@@ -1,8 +1,9 @@
-#include "Game.hpp"
+import TramDepot;
+#include <Windows.h>
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 {
-    TramDepot::Game game(1280, 720);
+    TramDepot::TramDepot game(1280, 720);
 
     game.MainLoop();
 

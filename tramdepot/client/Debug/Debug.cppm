@@ -1,7 +1,8 @@
-#pragma once
+module;
 #include <string_view>
+export module TramDepot:Debug;
 
-namespace TramDepot::Debug
+export namespace TramDepot::Debug
 {
 void Init();
 void Release();

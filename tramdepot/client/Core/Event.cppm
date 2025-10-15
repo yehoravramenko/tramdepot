@@ -1,6 +1,6 @@
-#pragma once
+export module TramDepot:Event;
 
-namespace TramDepot
+export namespace TramDepot
 {
 enum EventType
 {

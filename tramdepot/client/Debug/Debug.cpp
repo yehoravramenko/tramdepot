@@ -1,10 +1,12 @@
-#include "Debug.hpp"
-
-#include <print>
+module;
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
+
+#include <print>
+
+module TramDepot:Debug;
 
 namespace TramDepot::Debug
 {

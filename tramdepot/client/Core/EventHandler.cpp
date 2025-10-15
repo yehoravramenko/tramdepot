@@ -1,4 +1,4 @@
-#include "EventHandler.hpp"
+module TramDepot:EventHandler;
 
 namespace TramDepot
 {

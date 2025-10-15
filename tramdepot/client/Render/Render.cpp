@@ -1,10 +1,11 @@
-#include "Render.hpp"
-
-#include "Debug/Debug.hpp"
-#include "D3D11/RendererD3D11.hpp"
-
+module;
 #include <format>
 #include <thread>
+#include <Windows.h>
+module TramDepot:Render;
+
+import :Debug;
+import :RendererD3D11;
 
 namespace TramDepot
 {

@@ -1,8 +1,9 @@
-#include "RendererD3D11.hpp"
-
+module;
 #include <cassert>
+#include <d3d11.h>
+module TramDepot:RendererD3D11;
 
-#include "Debug/Debug.hpp"
+import :Debug;
 
 namespace TramDepot
 {

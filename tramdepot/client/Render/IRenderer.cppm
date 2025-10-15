@@ -1,5 +1,6 @@
-#pragma once
-#include <windows.h>
+module;
+#include <Windows.h>
+export module TramDepot:IRenderer;
 
 namespace TramDepot
 {

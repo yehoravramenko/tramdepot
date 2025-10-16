@@ -1,11 +1,11 @@
 module;
 #include <d3d11.h>
-#include <memory>
-#include <functional>
 export module TramDepot:Render;
 
 import :Event;
 import :IRenderer;
+
+import std;
 
 namespace TramDepot
 {

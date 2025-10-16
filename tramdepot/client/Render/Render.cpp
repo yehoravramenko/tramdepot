@@ -1,11 +1,11 @@
 module;
-#include <format>
-#include <thread>
 #include <Windows.h>
 module TramDepot:Render;
 
 import :Debug;
 import :RendererD3D11;
+
+import std;
 
 namespace TramDepot
 {
@@ -64,20 +64,8 @@ void Render::createWindow()
 
 void Render::Update()
 {
-    MSG msg                   = {};
-    BOOL result               = 0;
-    __int64 currentTicksCount = 0;
-
-    currentTicksCount = this->getTicks();
-    this->deltaTime =
-        (currentTicksCount - this->prevTicksCount) * this->secondsPerCount;
-    if (this->deltaTime < 0.0)
-    {
-        this->deltaTime = 0.0;
-    }
-
-    this->prevTicksCount = currentTicksCount;
-    Debug::Log(std::format("deltaTime: {}s", this->deltaTime));
+    MSG msg     = {};
+    BOOL result = 0;
 
     result = ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
     if (result < 0)
@@ -94,15 +82,6 @@ void Render::Update()
     ::DispatchMessage(&msg);
 
     this->renderer->Update();
-}
-
-inline __int64 Render::getTicks()
-{
-    LARGE_INTEGER ticks{};
-
-    ::QueryPerformanceCounter(&ticks);
-
-    return ticks.QuadPart;
 }
 
 } // namespace TramDepot

@@ -1,6 +1,7 @@
 module TramDepot;
 
 import :Debug;
+import :Time;
 
 namespace TramDepot
 {
@@ -21,6 +22,8 @@ void TramDepot::MainLoop()
 {
     for (;;)
     {
+        Time::Tick();
+
         for (std::optional<Event> e;
              e = this->eventHandler.PollEvent(), e.has_value();)
         {

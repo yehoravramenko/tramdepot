@@ -1,5 +1,4 @@
 module;
-#include <cassert>
 #include <d3d11.h>
 module TramDepot:RendererD3D11;
 
@@ -56,7 +55,10 @@ void RendererD3D11::createDevice()
                                                    &this->qualityLevelsCount);
 
     // All D3D11 compatible devices must support 4xMSAA
-    assert(this->qualityLevelsCount > 0);
+    if (this->qualityLevelsCount <= 0)
+    {
+        Debug::Error("D3D11 is unsupported");
+    }
 }
 
 void RendererD3D11::createSwapChain()

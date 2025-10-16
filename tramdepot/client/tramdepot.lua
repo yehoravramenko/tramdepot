@@ -2,6 +2,8 @@ project "TramDepot"
    kind "WindowedApp"
    language "C++"
    cppdialect "C++23"
+   buildstlmodules "On"
+
    targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
    objdir (_MAIN_SCRIPT_DIR.."/build/obj/%{cfg.buildcfg}/")
 

@@ -2,6 +2,7 @@ export module TramDepot;
 
 import :Render;
 import :EventHandler;
+import :Time;
 
 namespace TramDepot
 {

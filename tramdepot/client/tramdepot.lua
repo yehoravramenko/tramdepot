@@ -3,6 +3,7 @@ project "TramDepot"
    language "C++"
    cppdialect "C++23"
    targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
+   objdir (_MAIN_SCRIPT_DIR.."/build/obj/%{cfg.buildcfg}/")
 
    warnings "Extra"
 
@@ -11,13 +12,13 @@ project "TramDepot"
             _MAIN_SCRIPT,
    }
 
-   vpaths {
+--[[   vpaths {
       ["Headers/*"] = "**.hpp",
-      ["Modules/*"] = "**.cppm",
+      ["Modules/*"] = "**.ixx",
       ["Sources/*"] = "**.cpp",
-      ["Resources/*"] = "**/*.rc",
+      --["Resources/*"] = "**.rc",
       ["*"] = {"tramdepot.lua",_MAIN_SCRIPT},
-   }
+   }]]
 
       -- Global includes
    includedirs {"."}

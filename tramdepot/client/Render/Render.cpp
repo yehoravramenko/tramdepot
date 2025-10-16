@@ -21,9 +21,6 @@ Render::Render(const unsigned int windowWidth, const unsigned int windowHeight)
     this->windowSize     = {.width = windowWidth, .height = windowHeight};
     this->instanceHandle = ::GetModuleHandle(nullptr);
 
-    ::QueryPerformanceFrequency(&performanceFrequency);
-    this->secondsPerCount = 1. / performanceFrequency.QuadPart;
-
     this->createWindow();
 
     this->renderer =
@@ -74,10 +71,15 @@ void Render::Update()
     currentTicksCount = this->getTicks();
     this->deltaTime =
         (currentTicksCount - this->prevTicksCount) * this->secondsPerCount;
+    if (this->deltaTime < 0.0)
+    {
+        this->deltaTime = 0.0;
+    }
+
     this->prevTicksCount = currentTicksCount;
     Debug::Log(std::format("deltaTime: {}s", this->deltaTime));
 
-    result = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+    result = ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
     if (result < 0)
     {
         Debug::Error("Render::Update() -> PeekMessage() An error occured");
@@ -88,8 +90,8 @@ void Render::Update()
         this->postEvent(Event{.type = EventType::Exit});
         break;
     }
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+    ::TranslateMessage(&msg);
+    ::DispatchMessage(&msg);
 
     this->renderer->Update();
 }
@@ -98,7 +100,7 @@ inline __int64 Render::getTicks()
 {
     LARGE_INTEGER ticks{};
 
-    QueryPerformanceCounter(&ticks);
+    ::QueryPerformanceCounter(&ticks);
 
     return ticks.QuadPart;
 }

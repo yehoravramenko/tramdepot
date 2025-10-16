@@ -23,14 +23,10 @@ class Render
 
     HWND windowHandle     = nullptr;
     WindowSize windowSize = {0, 0};
-    __int64 prevTicksCount;
-    double secondsPerCount;
-    double deltaTime;
 
     std::unique_ptr<IRenderer> renderer;
     std::function<void(const Event &e)> postEvent = nullptr;
 
     void createWindow();
-    inline __int64 getTicks();
 };
 } // namespace TramDepot

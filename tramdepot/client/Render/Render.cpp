@@ -49,10 +49,9 @@ void Render::createWindow()
     RegisterClass(&wc);
 
     this->windowHandle = ::CreateWindow(
-        wc.lpszClassName, L"Tram Depot", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        CW_USEDEFAULT, CW_USEDEFAULT, this->windowSize.width,
-        this->windowSize.height, NO_PARENT_HWND, NO_MENU, this->instanceHandle,
-        NO_LPPARAM);
+        wc.lpszClassName, L"Tram Depot", WS_POPUP | WS_VISIBLE, CW_USEDEFAULT,
+        CW_USEDEFAULT, this->windowSize.width, this->windowSize.height,
+        NO_PARENT_HWND, NO_MENU, this->instanceHandle, NO_LPPARAM);
 
     if (this->windowHandle == nullptr)
     {
@@ -82,6 +81,7 @@ void Render::Update()
     ::DispatchMessage(&msg);
 
     this->renderer->Update();
+    this->renderer->Draw();
 }
 
 } // namespace TramDepot

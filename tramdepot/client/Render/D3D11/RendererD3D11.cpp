@@ -181,6 +181,18 @@ void RendererD3D11::Update()
 {
 }
 
+void RendererD3D11::Draw()
+{
+    static constexpr FLOAT juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0}; 
+
+    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView, juliaGreenColor);
+    this->d3dDeviceContext->ClearDepthStencilView(
+        this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f,
+        0);
+
+    this->swapChain->Present(0, 0);
+}
+
 RendererD3D11::~RendererD3D11()
 {
 }

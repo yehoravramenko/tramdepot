@@ -12,7 +12,8 @@ class RendererD3D11 : public IRenderer
     RendererD3D11(const HWND windowHandle, const WindowSize &windowSize);
     ~RendererD3D11();
 
-    virtual void Update() override;
+    void Update() override;
+    void Draw() override;
 
   private:
     ID3D11Device *d3dDevice               = nullptr;

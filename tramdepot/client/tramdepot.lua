@@ -2,21 +2,25 @@ project "TramDepot"
    kind "WindowedApp"
    language "C++"
    cppdialect "C++23"
+   buildstlmodules "On"
+
    targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
+   objdir (_MAIN_SCRIPT_DIR.."/build/obj/%{cfg.buildcfg}/")
 
    warnings "Extra"
 
-   files { "**/**.hpp","**/**.cpp",
+   files { "**.hpp", "**.cppm", "**.cpp",
             "tramdepot.lua",
             _MAIN_SCRIPT,
    }
 
-   vpaths {
+--[[   vpaths {
       ["Headers/*"] = "**.hpp",
+      ["Modules/*"] = "**.ixx",
       ["Sources/*"] = "**.cpp",
-      ["Resources/*"] = "**/**.rc",
+      --["Resources/*"] = "**.rc",
       ["*"] = {"tramdepot.lua",_MAIN_SCRIPT},
-   }
+   }]]
 
       -- Global includes
    includedirs {"."}

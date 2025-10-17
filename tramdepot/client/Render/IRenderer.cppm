@@ -1,5 +1,6 @@
-#pragma once
-#include <windows.h>
+module;
+#include <Windows.h>
+export module TramDepot:IRenderer;
 
 namespace TramDepot
 {
@@ -14,6 +15,7 @@ class IRenderer
     virtual ~IRenderer() {};
 
     virtual void Update() = 0;
+    virtual void Draw() = 0;
 
   protected:
     HWND windowHandle;

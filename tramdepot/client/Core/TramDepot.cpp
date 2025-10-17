@@ -1,10 +1,12 @@
-#include "Game.hpp"
+module TramDepot;
 
-#include "Debug/Debug.hpp"
+import :Debug;
+import :Time;
 
 namespace TramDepot
 {
-Game::Game(const unsigned int windowWidth, const unsigned int windowHeight)
+TramDepot::TramDepot(const unsigned int windowWidth,
+                     const unsigned int windowHeight)
     : render(windowWidth, windowHeight)
 {
 #ifdef DEBUG
@@ -16,10 +18,12 @@ Game::Game(const unsigned int windowWidth, const unsigned int windowHeight)
     };
 }
 
-void Game::MainLoop()
+void TramDepot::MainLoop()
 {
     for (;;)
     {
+        Time::Tick();
+
         for (std::optional<Event> e;
              e = this->eventHandler.PollEvent(), e.has_value();)
         {
@@ -33,7 +37,7 @@ void Game::MainLoop()
 mainloop_exit:;
 }
 
-Game::~Game()
+TramDepot::~TramDepot()
 {
 #ifdef DEBUG
     Debug::Release();

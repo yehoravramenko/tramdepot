@@ -1,10 +1,11 @@
-#include "Render.hpp"
+module;
+#include <Windows.h>
+module TramDepot:Render;
 
-#include "Debug/Debug.hpp"
-#include "D3D11/RendererD3D11.hpp"
+import :Debug;
+import :RendererD3D11;
 
-#include <format>
-#include <thread>
+import std;
 
 namespace TramDepot
 {
@@ -19,9 +20,6 @@ Render::Render(const unsigned int windowWidth, const unsigned int windowHeight)
 
     this->windowSize     = {.width = windowWidth, .height = windowHeight};
     this->instanceHandle = ::GetModuleHandle(nullptr);
-
-    ::QueryPerformanceFrequency(&performanceFrequency);
-    this->secondsPerCount = 1. / performanceFrequency.QuadPart;
 
     this->createWindow();
 
@@ -51,10 +49,9 @@ void Render::createWindow()
     RegisterClass(&wc);
 
     this->windowHandle = ::CreateWindow(
-        wc.lpszClassName, L"Tram Depot", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        CW_USEDEFAULT, CW_USEDEFAULT, this->windowSize.width,
-        this->windowSize.height, NO_PARENT_HWND, NO_MENU, this->instanceHandle,
-        NO_LPPARAM);
+        wc.lpszClassName, L"Tram Depot", WS_POPUP | WS_VISIBLE, CW_USEDEFAULT,
+        CW_USEDEFAULT, this->windowSize.width, this->windowSize.height,
+        NO_PARENT_HWND, NO_MENU, this->instanceHandle, NO_LPPARAM);
 
     if (this->windowHandle == nullptr)
     {
@@ -66,17 +63,10 @@ void Render::createWindow()
 
 void Render::Update()
 {
-    MSG msg                   = {};
-    BOOL result               = 0;
-    __int64 currentTicksCount = 0;
+    MSG msg     = {};
+    BOOL result = 0;
 
-    currentTicksCount = this->getTicks();
-    this->deltaTime =
-        (currentTicksCount - this->prevTicksCount) * this->secondsPerCount;
-    this->prevTicksCount = currentTicksCount;
-    Debug::Log(std::format("deltaTime: {}s", this->deltaTime));
-
-    result = PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+    result = ::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
     if (result < 0)
     {
         Debug::Error("Render::Update() -> PeekMessage() An error occured");
@@ -87,19 +77,11 @@ void Render::Update()
         this->postEvent(Event{.type = EventType::Exit});
         break;
     }
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+    ::TranslateMessage(&msg);
+    ::DispatchMessage(&msg);
 
     this->renderer->Update();
-}
-
-inline __int64 Render::getTicks()
-{
-    LARGE_INTEGER ticks{};
-
-    QueryPerformanceCounter(&ticks);
-
-    return ticks.QuadPart;
+    this->renderer->Draw();
 }
 
 } // namespace TramDepot

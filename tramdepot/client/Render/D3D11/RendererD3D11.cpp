@@ -1,8 +1,8 @@
-#include "RendererD3D11.hpp"
+module;
+#include <d3d11.h>
+module TramDepot:RendererD3D11;
 
-#include <cassert>
-
-#include "Debug/Debug.hpp"
+import :Debug;
 
 namespace TramDepot
 {
@@ -55,7 +55,10 @@ void RendererD3D11::createDevice()
                                                    &this->qualityLevelsCount);
 
     // All D3D11 compatible devices must support 4xMSAA
-    assert(this->qualityLevelsCount > 0);
+    if (this->qualityLevelsCount <= 0)
+    {
+        Debug::Error("D3D11 is unsupported");
+    }
 }
 
 void RendererD3D11::createSwapChain()
@@ -176,6 +179,18 @@ void RendererD3D11::createSwapChain()
 
 void RendererD3D11::Update()
 {
+}
+
+void RendererD3D11::Draw()
+{
+    static constexpr FLOAT juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0}; 
+
+    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView, juliaGreenColor);
+    this->d3dDeviceContext->ClearDepthStencilView(
+        this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f,
+        0);
+
+    this->swapChain->Present(0, 0);
 }
 
 RendererD3D11::~RendererD3D11()

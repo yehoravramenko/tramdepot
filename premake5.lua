@@ -5,7 +5,7 @@ workspace "TramDepot"
    characterset "Unicode"
    architecture "x86_64"
    configurations { "Debug", "Release" }
-   location "projects"
+   --location "projects"
    startproject "TramDepot"
 
 group "Client"

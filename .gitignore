@@ -60,3 +60,6 @@ projects/*
 compile_commands.json
 
 .vs/
+
+*.vcxproj*
+*.sln*

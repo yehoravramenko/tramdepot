@@ -57,7 +57,7 @@ void RendererD3D11::createDevice()
     // All D3D11 compatible devices must support 4xMSAA
     if (this->qualityLevelsCount <= 0)
     {
-        Debug::Error("D3D11 is unsupported");
+        Debug::Error("DirectX 11 is not supported");
     }
 }
 
@@ -183,7 +183,7 @@ void RendererD3D11::Update()
 
 void RendererD3D11::Draw()
 {
-    static constexpr FLOAT juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0}; 
+    static constexpr float juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0}; 
 
     this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView, juliaGreenColor);
     this->d3dDeviceContext->ClearDepthStencilView(

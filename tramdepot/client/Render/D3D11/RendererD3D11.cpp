@@ -4,86 +4,50 @@ module TramDepot:RendererD3D11;
 
 import :Debug;
 
+// We constantly check d3d functions for failure, so there is no reason to
+// create separate HRESULT in every function.
+static HRESULT hr = 0;
+
 namespace TramDepot
 {
-constexpr IDXGIAdapter *PRIMARY_DISPLAY_ADAPTER     = nullptr;
-constexpr HMODULE NO_SOFTWARE_ADAPTER               = nullptr;
-constexpr D3D_FEATURE_LEVEL *GREATEST_FEATURE_LEVEL = nullptr;
-
-constexpr UINT MSAA_SAMPLE_COUNT = 4;
-
-constexpr UINT SWAP_CHAIN_FLAGS = 0;
-
-constexpr D3D11_RENDER_TARGET_VIEW_DESC *NO_DESC = nullptr;
-
 RendererD3D11::RendererD3D11(const HWND windowHandle,
                              const WindowSize &windowSize)
 {
     this->windowHandle = windowHandle;
     this->windowSize   = windowSize;
 
-    this->createDevice();
-    this->createSwapChain();
+    this->initializeD3D();
 }
 
-void RendererD3D11::createDevice()
+void RendererD3D11::initializeD3D()
 {
-    HRESULT hr;
     D3D_FEATURE_LEVEL supportedFeatureLevel;
+    UINT deviceFlags                   = D3D11_CREATE_DEVICE_SINGLETHREADED;
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 
-    UINT deviceFlags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+    constexpr IDXGIAdapter *PRIMARY_DISPLAY_ADAPTER     = nullptr;
+    constexpr HMODULE NO_SOFTWARE_ADAPTER               = nullptr;
+    constexpr D3D_FEATURE_LEVEL *GREATEST_FEATURE_LEVEL = nullptr;
+    constexpr UINT SWAP_CHAIN_FLAGS                     = 0;
+
 #ifdef DEBUG
     deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-
-    hr = ::D3D11CreateDevice(
-        PRIMARY_DISPLAY_ADAPTER, D3D_DRIVER_TYPE_HARDWARE, NO_SOFTWARE_ADAPTER,
-        deviceFlags, GREATEST_FEATURE_LEVEL, 0, D3D11_SDK_VERSION,
-        &this->d3dDevice, &supportedFeatureLevel, &this->d3dDeviceContext);
-
-    if (FAILED(hr))
-    {
-        Debug::Error("Failed to create D3D11 Device");
-    }
-    if (supportedFeatureLevel != D3D_FEATURE_LEVEL_11_0)
-    {
-        Debug::Error("DirectX 11 is not supported");
-    }
-
-    this->d3dDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM,
-                                                   MSAA_SAMPLE_COUNT,
-                                                   &this->qualityLevelsCount);
-
-    // All D3D11 compatible devices must support 4xMSAA
-    if (this->qualityLevelsCount <= 0)
-    {
-        Debug::Error("DirectX 11 is not supported");
-    }
-}
-
-void RendererD3D11::createSwapChain()
-{
-    HRESULT hr;
-    DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-
-    IDXGIDevice *dxgiDevice   = nullptr;
-    IDXGIAdapter *dxgiAdapter = nullptr;
-    IDXGIFactory *dxgiFactory = nullptr;
-
-    ID3D11Texture2D *backBuffer = nullptr;
 
     swapChainDesc = {
         .BufferDesc{
             .Width  = this->windowSize.width,
             .Height = this->windowSize.height,
+            // TODO: get refresh rate data from Render class
             .RefreshRate{.Numerator = 60, .Denominator = 1},
             .Format           = DXGI_FORMAT_R8G8B8A8_UNORM,
             .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
             .Scaling          = DXGI_MODE_SCALING_UNSPECIFIED,
         },
 
-        .SampleDesc{.Count   = MSAA_SAMPLE_COUNT,
-                    .Quality = this->qualityLevelsCount - 1},
+        // TODO: implement MSAA
+        .SampleDesc{.Count   = this->msaaSamples.count,
+                    .Quality = this->msaaSamples.quality},
 
         .BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT,
         .BufferCount  = 1,
@@ -94,87 +58,98 @@ void RendererD3D11::createSwapChain()
         .Flags = SWAP_CHAIN_FLAGS,
     };
 
+    hr = ::D3D11CreateDeviceAndSwapChain(
+        PRIMARY_DISPLAY_ADAPTER, D3D_DRIVER_TYPE_HARDWARE, NO_SOFTWARE_ADAPTER,
+        deviceFlags, GREATEST_FEATURE_LEVEL, 0, D3D11_SDK_VERSION,
+        &swapChainDesc, &this->swapChain, &this->d3dDevice,
+        &supportedFeatureLevel, &this->d3dDeviceContext);
+
+    if (FAILED(hr))
+    {
+        Debug::Error("Failed to create D3D11 Device");
+    }
+    if (supportedFeatureLevel != D3D_FEATURE_LEVEL_11_0)
+    {
+        Debug::Error("DirectX 11 is not supported");
+    }
+
+    // TODO: implement MSAA
+    // this->d3dDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM,
+    //                                                MSAA_SAMPLE_COUNT,
+    //                                                &this->qualityLevelsCount);
+
+    //// All D3D11 compatible devices must support 4xMSAA
+    // if (this->qualityLevelsCount <= 0)
+    //{
+    //     Debug::Error("DirectX 11 is not supported");
+    // }
+
+    hr = this->swapChain->GetBuffer(
+        0, __uuidof(ID3D11Texture2D),
+        reinterpret_cast<void **>(&this->swapChainBuffer));
+
+    if (FAILED(hr))
+    {
+        Debug::Error("Failed to get a back buffer from swap chain");
+    }
+
+#ifdef DEBUG
     hr = this->d3dDevice->QueryInterface(
-        __uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
+        __uuidof(ID3D11Debug), reinterpret_cast<void **>(&this->debugLayer));
+
     if (FAILED(hr))
     {
-        Debug::Error("Failed to query IDXGIDevice interface");
+        Debug::Error("Failed to get a debug layer from D3D device");
     }
+#endif // DEBUG
 
-    hr = dxgiDevice->GetAdapter(&dxgiAdapter);
-    if (FAILED(hr))
-    {
-        Debug::Error("Failed to get IDXGIAdapter");
-    }
-
-    hr = dxgiAdapter->GetParent(__uuidof(IDXGIFactory),
-                                reinterpret_cast<void **>(&dxgiFactory));
-    if (FAILED(hr))
-    {
-        Debug::Error("Failed to get IDXGIFactory");
-    }
-
-    hr = dxgiFactory->CreateSwapChain(this->d3dDevice, &swapChainDesc,
-                                      &this->swapChain);
-    if (FAILED(hr))
-    {
-        Debug::Error("Failed to create a swap chain");
-    }
-
-    dxgiDevice->Release();
-    dxgiAdapter->Release();
-    dxgiFactory->Release();
-
-    hr = this->swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
-                                    reinterpret_cast<void **>(&backBuffer));
-    if (FAILED(hr))
-    {
-        Debug::Error("Failed to get back buffer");
-    }
-
-    hr = this->d3dDevice->CreateRenderTargetView(backBuffer, NO_DESC,
+    static constexpr D3D11_RENDER_TARGET_VIEW_DESC *NO_DESC = nullptr;
+    hr = this->d3dDevice->CreateRenderTargetView(this->swapChainBuffer, NO_DESC,
                                                  &this->renderTargetView);
+
     if (FAILED(hr))
     {
-        Debug::Error("Failed to create render target view");
+        Debug::Error("Failed to get a debug layer from D3D device");
     }
 
-    backBuffer->Release();
+    this->createDepthStencil();
+}
 
-    D3D11_TEXTURE2D_DESC depthBufferDesc{
+void RendererD3D11::createDepthStencil()
+{
+    const D3D11_TEXTURE2D_DESC desc = {
         .Width     = this->windowSize.width,
         .Height    = this->windowSize.height,
         .MipLevels = 1,
         .ArraySize = 1,
-        .Format    = DXGI_FORMAT_D24_UNORM_S8_UINT,
+        .Format    = DXGI_FORMAT_D32_FLOAT,
         .SampleDesc{
-            .Count   = 4,
-            .Quality = this->qualityLevelsCount - 1,
+            .Count   = this->msaaSamples.count,
+            .Quality = this->msaaSamples.quality,
         },
-        .Usage          = D3D11_USAGE_DEFAULT,
-        .BindFlags      = D3D11_BIND_DEPTH_STENCIL,
-        .CPUAccessFlags = 0,
-        .MiscFlags      = 0,
+        .Usage     = D3D11_USAGE_DEFAULT,
+        .BindFlags = D3D11_BIND_DEPTH_STENCIL,
     };
 
-    this->d3dDevice->CreateTexture2D(&depthBufferDesc, 0,
-                                     &this->depthStencilBuffer);
-    this->d3dDevice->CreateDepthStencilView(this->depthStencilBuffer, 0,
-                                            &this->depthStencilView);
+    static constexpr D3D11_SUBRESOURCE_DATA *NO_INITIAL_DATA = nullptr;
+    hr = this->d3dDevice->CreateTexture2D(&desc, NO_INITIAL_DATA,
+                                          &this->depthStencilBuffer);
+    if (FAILED(hr))
+    {
+        Debug::Error("Failed to create a depth stencil buffer");
+    }
+
+    static constexpr D3D11_DEPTH_STENCIL_VIEW_DESC *NO_DESC = nullptr;
+    hr = this->d3dDevice->CreateDepthStencilView(
+        this->depthStencilBuffer, NO_DESC, &this->depthStencilView);
+
+    if (FAILED(hr))
+    {
+        Debug::Error("Failed to create a depth stencil view");
+    }
 
     this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
                                                this->depthStencilView);
-
-    this->viewport = {
-        .TopLeftX = 0,
-        .TopLeftY = 0,
-        .Width    = static_cast<float>(this->windowSize.width),
-        .Height   = static_cast<float>(this->windowSize.height),
-        .MinDepth = 0.0,
-        .MaxDepth = 1.0,
-    };
-
-    this->d3dDeviceContext->RSSetViewports(1, &this->viewport);
 }
 
 void RendererD3D11::Update()
@@ -183,18 +158,35 @@ void RendererD3D11::Update()
 
 void RendererD3D11::Draw()
 {
-    static constexpr float juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0}; 
+    static constexpr float juliaGreenColor[] = {0.0, 0.5, 0.0, 1.0};
 
-    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView, juliaGreenColor);
+    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView,
+                                                  juliaGreenColor);
     this->d3dDeviceContext->ClearDepthStencilView(
         this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f,
         0);
 
+    // TODO: remove magic numbers
     this->swapChain->Present(0, 0);
 }
 
 RendererD3D11::~RendererD3D11()
 {
+    this->d3dDeviceContext->ClearState();
+
+    this->renderTargetView->Release();
+    this->depthStencilView->Release();
+    this->depthStencilBuffer->Release();
+
+    this->swapChainBuffer->Release();
+    this->swapChain->Release();
+    this->d3dDeviceContext->Release();
+
+#ifdef DEBUG
+    this->debugLayer->Release();
+#endif // DEBUG
+
+    this->d3dDevice->Release();
 }
 
 } // namespace TramDepot

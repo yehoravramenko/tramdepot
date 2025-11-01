@@ -1,4 +1,4 @@
-local td = "tramdepot" 
+local td = "tramdepot"
 local clDir = td.."/client/"
 
 workspace "TramDepot"

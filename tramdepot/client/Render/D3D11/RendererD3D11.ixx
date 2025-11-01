@@ -16,17 +16,25 @@ class RendererD3D11 : public IRenderer
     void Draw() override;
 
   private:
-    ID3D11Device *d3dDevice               = nullptr;
-    ID3D11DeviceContext *d3dDeviceContext = nullptr;
+    ID3D11Device *d3dDevice                  = {};
+    ID3D11DeviceContext *d3dDeviceContext    = {};
+    IDXGISwapChain *swapChain                = {};
+    ID3D11Texture2D *swapChainBuffer         = {};
+    ID3D11Debug *debugLayer                  = {};
+    ID3D11RenderTargetView *renderTargetView = {};
+    ID3D11Texture2D *depthStencilBuffer      = {};
+    ID3D11DepthStencilView *depthStencilView = {};
 
-    IDXGISwapChain *swapChain                = nullptr;
-    ID3D11RenderTargetView *renderTargetView = nullptr;
-    ID3D11Texture2D *depthStencilBuffer      = nullptr;
-    ID3D11DepthStencilView *depthStencilView = nullptr;
-    D3D11_VIEWPORT viewport;
-    UINT qualityLevelsCount;
+    /*UINT qualityLevelsCount = 0;*/
 
-    void createDevice();
-    void createSwapChain();
+    // TODO: implement MSAA
+    struct
+    {
+        unsigned int count   = 1;
+        unsigned int quality = 0;
+    } msaaSamples;
+
+    void initializeD3D();
+    void createDepthStencil();
 };
 } // namespace TramDepot

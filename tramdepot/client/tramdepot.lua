@@ -9,7 +9,7 @@ project "TramDepot"
 
    warnings "Extra"
 
-   files { "**.hpp", "**.cppm", "**.cpp",
+   files { "**.hpp", "**.ixx", "**.cpp",
             "tramdepot.lua",
             _MAIN_SCRIPT,
    }

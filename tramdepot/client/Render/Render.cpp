@@ -16,15 +16,12 @@ constexpr LPVOID NO_LPPARAM   = 0;
 
 Render::Render(const unsigned int windowWidth, const unsigned int windowHeight)
 {
-    LARGE_INTEGER performanceFrequency{};
-
     this->windowSize     = {.width = windowWidth, .height = windowHeight};
     this->instanceHandle = ::GetModuleHandle(nullptr);
 
     this->createWindow();
 
-    this->renderer =
-        std::make_unique<RendererD3D11>(this->windowHandle, this->windowSize);
+    this->renderer = std::make_unique<RendererD3D11>(this->windowHandle);
 }
 
 static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

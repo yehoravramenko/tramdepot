@@ -4,9 +4,11 @@ module;
 #include <Windows.h>
 #endif
 
-#include <print>
+#include <cstdio>
 
 module TramDepot:Debug;
+
+import std;
 
 namespace TramDepot::Debug
 {
@@ -31,16 +33,17 @@ void Init()
     static bool isInitialized = false;
 
     if (isInitialized)
-        Error("Debug::Init was called twice");
+        Debug::Error("Debug::Init was called twice");
 
     AllocConsole();
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
+    std::freopen("CONIN$", "r", stdin);
+    std::freopen("CONOUT$", "w", stdout);
+    std::freopen("CONOUT$", "w", stderr);
+
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
     // https://superuser.com/a/1529908
 
-    HANDLE hOut  = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     GetConsoleMode(hOut, &dwMode);
     dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;

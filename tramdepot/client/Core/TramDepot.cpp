@@ -13,9 +13,8 @@ TramDepot::TramDepot(const unsigned int windowWidth,
     Debug::Init();
 #endif
 
-    this->render.postEvent = [this](const Event &e) {
-        this->eventHandler.PostEvent(e);
-    };
+    this->render.SetEventCallback(
+        [this](const Event &e) { this->eventHandler.PostEvent(e); });
 }
 
 void TramDepot::MainLoop()

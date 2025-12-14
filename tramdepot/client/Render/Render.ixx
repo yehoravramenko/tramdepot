@@ -11,12 +11,12 @@ namespace TramDepot
 {
 class Render
 {
-    friend class TramDepot;
-
   public:
     Render(const unsigned int windowWidth, const unsigned int windowHeight);
 
     void Update();
+
+    void SetEventCallback(const std::function<void(const Event &e)> &cb);
 
   private:
     HINSTANCE instanceHandle = nullptr;

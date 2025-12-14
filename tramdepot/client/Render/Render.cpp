@@ -24,10 +24,22 @@ Render::Render(const unsigned int windowWidth, const unsigned int windowHeight)
     this->renderer = std::make_unique<RendererD3D11>(this->windowHandle);
 }
 
+void Render::SetEventCallback(const std::function<void(const Event &e)> &cb)
+{
+    this->postEvent = std::move(cb);
+}
+
 static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+    case WM_KEYDOWN:
+        if (wParam == VK_ESCAPE)
+        {
+            DestroyWindow(hWnd);
+        }
+        return TRUE;
+
     case WM_DESTROY:
         ::PostQuitMessage(0);
         return TRUE;
@@ -68,15 +80,17 @@ void Render::Update()
     {
         Debug::Error("Render::Update() -> PeekMessage() An error occured");
     }
-    switch (msg.message)
+    if (result != 0)
     {
-    case WM_QUIT:
-        this->postEvent(Event{.type = EventType::Exit});
-        break;
+        switch (msg.message)
+        {
+        case WM_QUIT:
+            this->postEvent(Event{.type = EventType::Exit});
+            break;
+        }
+        ::TranslateMessage(&msg);
+        ::DispatchMessage(&msg);
     }
-    ::TranslateMessage(&msg);
-    ::DispatchMessage(&msg);
-
     this->renderer->Update();
     this->renderer->Draw();
 }

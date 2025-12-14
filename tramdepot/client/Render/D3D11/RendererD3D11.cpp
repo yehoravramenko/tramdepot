@@ -75,6 +75,9 @@ RendererD3D11::RendererD3D11(const HWND windowHandle)
 
 RendererD3D11::~RendererD3D11()
 {
+    this->swapChain->Release();
+    this->d3dDevice->Release();
+    this->d3dDeviceContext->Release();
 }
 
 void RendererD3D11::Update()
@@ -83,6 +86,10 @@ void RendererD3D11::Update()
 
 void RendererD3D11::Draw()
 {
+    const float juliaGreenColor[] = {0.0f, 0.5f, 0.0f, 1.0f};
+    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView,
+                                                  juliaGreenColor);
+    this->swapChain->Present(0, 0);
 }
 
 } // namespace TramDepot

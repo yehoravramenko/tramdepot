@@ -9,7 +9,7 @@ project "TramDepot"
 
    warnings "Extra"
 
-   files { "**.hpp", "**.ixx", "**.cpp",
+   files { "**.hpp", "**.ixx", "**.cpp", "**.fx",
             "tramdepot.lua",
             _MAIN_SCRIPT,
    }
@@ -25,7 +25,7 @@ project "TramDepot"
       -- Global includes
    includedirs {"."}
 
-   links {"d3d11"}
+   links {"d3d11", "D3DCompiler"}
 
    filter "configurations:Debug"
       defines { "DEBUG" }

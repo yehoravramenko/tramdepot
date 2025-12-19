@@ -21,7 +21,8 @@ Render::Render(const unsigned int windowWidth, const unsigned int windowHeight)
 
     this->createWindow();
 
-    this->renderer = std::make_unique<RendererD3D11>(this->windowHandle);
+    this->renderer =
+        std::make_unique<RendererD3D11>(this->windowHandle, this->windowSize);
 }
 
 void Render::SetEventCallback(const std::function<void(const Event &e)> &cb)

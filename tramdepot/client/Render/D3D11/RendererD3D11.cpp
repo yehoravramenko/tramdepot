@@ -1,9 +1,11 @@
 module;
 #include <d3d11.h>
+#include <d3dcompiler.h>
 module TramDepot:RendererD3D11;
 
 import :Debug;
 import std;
+import D3D;
 
 // We constantly check d3d functions for failure, so there is no reason to
 // create separate HRESULT in every function.
@@ -13,7 +15,8 @@ static HRESULT hr = 0;
 namespace TramDepot
 {
 
-RendererD3D11::RendererD3D11(const HWND windowHandle)
+RendererD3D11::RendererD3D11(const HWND windowHandle,
+                             const WindowSize &windowSize)
 {
     constexpr IDXGIAdapter *DEFAULT_VIDEO_ADAPTER = nullptr;
     constexpr HMODULE NULL_SOFTWARE_MODULE        = nullptr;
@@ -71,6 +74,82 @@ RendererD3D11::RendererD3D11(const HWND windowHandle)
 
     this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
                                                nullptr);
+
+    const char shader_data[] =
+        "float4 VS(float4 inPos : POSITION) : SV_Position\n"
+        "{ return inPos; }\n"
+
+        "float4 PS() : SV_Target\n"
+        "{ return float4(0.0f, 0.3f, 0.0f, 1.0f); }\n";
+
+    hr = D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
+                    nullptr, nullptr, nullptr, "VS", "vs_5_0", 0, 0,
+                    &this->vsBuffer, nullptr);
+    hr = D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
+                    nullptr, nullptr, nullptr, "PS", "ps_5_0", 0, 0,
+                    &this->psBuffer, nullptr);
+
+    // TODO: Shader class
+    if (FAILED(hr))
+    {
+        Debug::Error("Shader compilation error");
+    }
+
+    hr = this->d3dDevice->CreateVertexShader(this->vsBuffer->GetBufferPointer(),
+                                             this->vsBuffer->GetBufferSize(),
+                                             nullptr, &this->vs);
+    hr = this->d3dDevice->CreatePixelShader(this->psBuffer->GetBufferPointer(),
+                                            this->psBuffer->GetBufferSize(),
+                                            nullptr, &this->ps);
+
+    // TODO: check shader objects creation result
+
+    this->d3dDeviceContext->VSSetShader(this->vs, nullptr, 0);
+    this->d3dDeviceContext->PSSetShader(this->ps, nullptr, 0);
+
+    D3D::Vertex v[] = {
+        {0.0f, 0.5f, 0.5f},
+        {0.5f, -0.5f, 0.5f},
+        {-0.5f, -0.5f, 0.5f},
+    };
+
+    D3D11_BUFFER_DESC vertexBufferDesc = {
+        .ByteWidth      = sizeof(D3D::Vertex) * 3,
+        .Usage          = D3D11_USAGE_DEFAULT,
+        .BindFlags      = D3D11_BIND_VERTEX_BUFFER,
+        .CPUAccessFlags = 0,
+        .MiscFlags      = 0,
+    };
+
+    D3D11_SUBRESOURCE_DATA vertexBufferData = {
+        .pSysMem = v,
+    };
+
+    hr = this->d3dDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData,
+                                       &this->vertexBuffer);
+    // TODO: check buffer for errors
+
+    UINT stride = sizeof(D3D::Vertex);
+    UINT offset = 0;
+    this->d3dDeviceContext->IASetVertexBuffers(0, 1, &this->vertexBuffer,
+                                               &stride, &offset);
+
+    hr = this->d3dDevice->CreateInputLayout(
+        D3D::Vertex::layout, 1, this->vsBuffer->GetBufferPointer(),
+        this->vsBuffer->GetBufferSize(), &this->vertexLayout);
+
+    this->d3dDeviceContext->IASetInputLayout(this->vertexLayout);
+    this->d3dDeviceContext->IASetPrimitiveTopology(
+        D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    D3D11_VIEWPORT viewport = {
+        .TopLeftX = 0,
+        .TopLeftY = 0,
+        .Width    = static_cast<float>(windowSize.width),
+        .Height   = static_cast<float>(windowSize.height),
+    };
+
+    this->d3dDeviceContext->RSSetViewports(1, &viewport);
 }
 
 RendererD3D11::~RendererD3D11()
@@ -78,6 +157,13 @@ RendererD3D11::~RendererD3D11()
     this->swapChain->Release();
     this->d3dDevice->Release();
     this->d3dDeviceContext->Release();
+    this->renderTargetView->Release();
+    this->vertexBuffer->Release();
+    this->vs->Release();
+    this->ps->Release();
+    this->vsBuffer->Release();
+    this->psBuffer->Release();
+    this->vertexLayout->Release();
 }
 
 void RendererD3D11::Update()
@@ -89,6 +175,9 @@ void RendererD3D11::Draw()
     const float juliaGreenColor[] = {0.0f, 0.5f, 0.0f, 1.0f};
     this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView,
                                                   juliaGreenColor);
+
+    this->d3dDeviceContext->Draw(3, 0);
+
     this->swapChain->Present(0, 0);
 }
 

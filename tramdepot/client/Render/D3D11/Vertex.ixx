@@ -1,8 +1,8 @@
 module;
 #include <d3d11.h>
-export module D3D;
+export module DX11;
 
-namespace D3D
+namespace DX11
 {
 
 export struct Vertex
@@ -15,4 +15,4 @@ export struct Vertex
     };
 };
 
-} // namespace D3D
+} // namespace DX11

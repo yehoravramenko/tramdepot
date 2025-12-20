@@ -19,8 +19,12 @@ class RendererD3D11 : public IRenderer
     IDXGISwapChain *swapChain{};
     ID3D11Device *d3dDevice{};
     ID3D11DeviceContext *d3dDeviceContext{};
+
     ID3D11RenderTargetView *renderTargetView{};
     ID3D11Texture2D *backBuffer{};
+
+    ID3D11DepthStencilView *depthStencilView{};
+    ID3D11Texture2D *depthStencilBuffer{};
 
     ID3D11Buffer *vertexBuffer{};
     ID3D11VertexShader *vs{};

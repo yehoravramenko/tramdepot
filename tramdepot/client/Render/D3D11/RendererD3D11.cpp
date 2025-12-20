@@ -5,7 +5,7 @@ module TramDepot:RendererD3D11;
 
 import :Debug;
 import std;
-import D3D;
+import DX11;
 
 // We constantly check d3d functions for failure, so there is no reason to
 // create separate HRESULT in every function.
@@ -26,7 +26,7 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
     constexpr UINT featureLevelsCount           = 1;
 
     // UINT msaaQualityLevels{};
-    //  TODO: ID3D11Device::CheckMultisampleQualityLevels()
+    // TODO: ID3D11Device::CheckMultisampleQualityLevels()
 
     const DXGI_SWAP_CHAIN_DESC swapChainDesc = {
         .BufferDesc{
@@ -72,8 +72,25 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
         Debug::Error("D3D11: Failed to create render target view");
     }
 
+    D3D11_TEXTURE2D_DESC depthStencilDesc = {
+        .Width     = windowSize.width,
+        .Height    = windowSize.height,
+        .MipLevels = 1,
+        .ArraySize = 1,
+        .Format    = DXGI_FORMAT_D24_UNORM_S8_UINT,
+        .SampleDesc{.Count = 1, .Quality = 0},
+        .Usage          = D3D11_USAGE_DEFAULT,
+        .BindFlags      = D3D11_BIND_DEPTH_STENCIL,
+        .CPUAccessFlags = 0,
+        .MiscFlags      = 0,
+    };
+
+    this->d3dDevice->CreateTexture2D(&depthStencilDesc, nullptr,
+                                     &this->depthStencilBuffer);
+    this->d3dDevice->CreateDepthStencilView(this->depthStencilBuffer, nullptr,
+                                            &this->depthStencilView);
     this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
-                                               nullptr);
+                                               this->depthStencilView);
 
     const char shader_data[] =
         "float4 VS(float4 inPos : POSITION) : SV_Position\n"
@@ -107,14 +124,14 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
     this->d3dDeviceContext->VSSetShader(this->vs, nullptr, 0);
     this->d3dDeviceContext->PSSetShader(this->ps, nullptr, 0);
 
-    D3D::Vertex v[] = {
+    DX11::Vertex v[] = {
         {0.0f, 0.5f, 0.5f},
         {0.5f, -0.5f, 0.5f},
         {-0.5f, -0.5f, 0.5f},
     };
 
     D3D11_BUFFER_DESC vertexBufferDesc = {
-        .ByteWidth      = sizeof(D3D::Vertex) * 3,
+        .ByteWidth      = sizeof(DX11::Vertex) * 3,
         .Usage          = D3D11_USAGE_DEFAULT,
         .BindFlags      = D3D11_BIND_VERTEX_BUFFER,
         .CPUAccessFlags = 0,
@@ -129,13 +146,13 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
                                        &this->vertexBuffer);
     // TODO: check buffer for errors
 
-    UINT stride = sizeof(D3D::Vertex);
+    UINT stride = sizeof(DX11::Vertex);
     UINT offset = 0;
     this->d3dDeviceContext->IASetVertexBuffers(0, 1, &this->vertexBuffer,
                                                &stride, &offset);
 
     hr = this->d3dDevice->CreateInputLayout(
-        D3D::Vertex::layout, 1, this->vsBuffer->GetBufferPointer(),
+        DX11::Vertex::layout, 1, this->vsBuffer->GetBufferPointer(),
         this->vsBuffer->GetBufferSize(), &this->vertexLayout);
 
     this->d3dDeviceContext->IASetInputLayout(this->vertexLayout);
@@ -147,6 +164,8 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
         .TopLeftY = 0,
         .Width    = static_cast<float>(windowSize.width),
         .Height   = static_cast<float>(windowSize.height),
+        .MinDepth = 0.0f,
+        .MaxDepth = 1.0f,
     };
 
     this->d3dDeviceContext->RSSetViewports(1, &viewport);
@@ -157,7 +176,13 @@ RendererD3D11::~RendererD3D11()
     this->swapChain->Release();
     this->d3dDevice->Release();
     this->d3dDeviceContext->Release();
+
     this->renderTargetView->Release();
+    this->backBuffer->Release();
+
+    this->depthStencilView->Release();
+    this->depthStencilBuffer->Release();
+
     this->vertexBuffer->Release();
     this->vs->Release();
     this->ps->Release();
@@ -175,6 +200,9 @@ void RendererD3D11::Draw()
     const float juliaGreenColor[] = {0.0f, 0.5f, 0.0f, 1.0f};
     this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView,
                                                   juliaGreenColor);
+    this->d3dDeviceContext->ClearDepthStencilView(
+        this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f,
+        0);
 
     this->d3dDeviceContext->Draw(3, 0);
 

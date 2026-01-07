@@ -1,6 +1,6 @@
-module;
-#include <string_view>
 export module TramDepot:Debug;
+
+import std;
 
 export namespace TramDepot::Debug
 {

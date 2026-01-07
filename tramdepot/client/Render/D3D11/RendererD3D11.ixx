@@ -3,6 +3,7 @@ module;
 export module TramDepot:RendererD3D11;
 
 import :IRenderer;
+import std;
 
 namespace TramDepot
 {
@@ -15,7 +16,12 @@ class RendererD3D11 : public IRenderer
     void Update() override;
     void Draw() override;
 
+    [[noreturn]] static inline void Error(std::string_view message);
+
   private:
+    HWND windowHandle;
+    WindowSize size;
+
     IDXGISwapChain *swapChain{};
     ID3D11Device *d3dDevice{};
     ID3D11DeviceContext *d3dDeviceContext{};
@@ -32,5 +38,10 @@ class RendererD3D11 : public IRenderer
     ID3DBlob *vsBuffer{};
     ID3DBlob *psBuffer{};
     ID3D11InputLayout *vertexLayout{};
+
+    void createSwapchain();
+    void createRenderTargetView();
+    void createDepthStencilView();
+    void compileShaders();
 };
 } // namespace TramDepot

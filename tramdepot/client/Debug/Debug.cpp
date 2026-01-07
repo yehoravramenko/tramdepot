@@ -20,11 +20,11 @@ enum ASCIIColor
 };
 
 static inline void output(const ASCIIColor col, const char *prefix,
-                          std::string_view msg)
+                          std::string_view msg, std::ostream &out = std::cout)
 {
 #ifdef DEBUG
-    std::println("\x1b[;{}m{}:\x1b[0m    {}", static_cast<int>(col), prefix,
-                 msg);
+    std::println(out, "\x1b[;{}m{}:\x1b[0m    {}", static_cast<int>(col),
+                 prefix, msg);
 #endif // DEBUG
 }
 
@@ -64,12 +64,12 @@ void Log(std::string_view msg)
 
 void Warning(std::string_view msg)
 {
-    output(ASCIIColor::Yellow, "Warning", msg);
+    output(ASCIIColor::Yellow, "Warning", msg, std::cerr);
 }
 
 [[noreturn]] void Error(std::string_view msg)
 {
-    output(ASCIIColor::Red, "Error", msg);
+    output(ASCIIColor::Red, "Error", msg, std::cerr);
 #ifdef _WIN32
     ::MessageBoxA(nullptr, msg.data(), "Error", MB_OK | MB_ICONERROR);
 #endif

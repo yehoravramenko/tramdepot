@@ -56,10 +56,11 @@ void Render::createWindow()
         .lpszClassName = L"TramDepotWindow",
     };
 
-    RegisterClass(&wc);
+    ::RegisterClass(&wc);
 
     this->windowHandle = ::CreateWindow(
-        wc.lpszClassName, L"Tram Depot", WS_POPUP | WS_VISIBLE, CW_USEDEFAULT,
+        wc.lpszClassName, L"Tram Depot Engine",
+        /*WS_POPUP */ WS_VISIBLE | WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
         CW_USEDEFAULT, this->windowSize.width, this->windowSize.height,
         NO_PARENT_HWND, NO_MENU, this->instanceHandle, NO_LPPARAM);
 

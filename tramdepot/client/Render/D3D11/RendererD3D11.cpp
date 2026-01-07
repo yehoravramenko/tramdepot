@@ -7,7 +7,7 @@ import :Debug;
 import std;
 import DX11;
 
-// We constantly check d3d functions for failure, so there is no reason to
+// Since we constantly check d3d functions for failure, there is no reason to
 // create separate HRESULT in every function.
 // TODO: or it is?
 static HRESULT hr = 0;
@@ -15,114 +15,21 @@ static HRESULT hr = 0;
 namespace TramDepot
 {
 
+void RendererD3D11::Error(std::string_view message)
+{
+    Debug::Error(std::format("D3D11: {}", message));
+}
+
 RendererD3D11::RendererD3D11(const HWND windowHandle,
                              const WindowSize &windowSize)
 {
-    constexpr IDXGIAdapter *DEFAULT_VIDEO_ADAPTER = nullptr;
-    constexpr HMODULE NULL_SOFTWARE_MODULE        = nullptr;
-    constexpr UINT runtimeLayersFlags             = D3D11_CREATE_DEVICE_DEBUG;
+    this->windowHandle = windowHandle;
+    this->windowSize   = windowSize;
 
-    constexpr D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_0};
-    constexpr UINT featureLevelsCount           = 1;
-
-    // UINT msaaQualityLevels{};
-    // TODO: ID3D11Device::CheckMultisampleQualityLevels()
-
-    const DXGI_SWAP_CHAIN_DESC swapChainDesc = {
-        .BufferDesc{
-            .RefreshRate{.Numerator = 60, .Denominator = 1},
-            .Format           = DXGI_FORMAT_R8G8B8A8_UNORM,
-            .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
-            .Scaling          = DXGI_MODE_SCALING_UNSPECIFIED,
-        },
-        .SampleDesc{.Count = 1, .Quality = 0},
-        .BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-        .BufferCount  = 1,
-        .OutputWindow = windowHandle,
-        .Windowed     = true,
-        .SwapEffect   = DXGI_SWAP_EFFECT_DISCARD,
-    };
-
-    hr = D3D11CreateDeviceAndSwapChain(
-        DEFAULT_VIDEO_ADAPTER, D3D_DRIVER_TYPE_HARDWARE, NULL_SOFTWARE_MODULE,
-        runtimeLayersFlags, featureLevels, featureLevelsCount,
-        D3D11_SDK_VERSION, &swapChainDesc, &this->swapChain, &this->d3dDevice,
-        nullptr, &this->d3dDeviceContext);
-
-    if (FAILED(hr))
-    {
-        Debug::Error(std::format(
-            "D3D11: Failed to create device and swapchain ({:08x})", hr));
-    }
-
-    hr = this->swapChain->GetBuffer(
-        0, __uuidof(ID3D11Texture2D),
-        reinterpret_cast<void **>(&this->backBuffer));
-
-    if (FAILED(hr))
-    {
-        Debug::Error("D3D11: Failed to obtain back buffer");
-    }
-
-    hr = this->d3dDevice->CreateRenderTargetView(this->backBuffer, nullptr,
-                                                 &this->renderTargetView);
-
-    if (FAILED(hr))
-    {
-        Debug::Error("D3D11: Failed to create render target view");
-    }
-
-    D3D11_TEXTURE2D_DESC depthStencilDesc = {
-        .Width     = windowSize.width,
-        .Height    = windowSize.height,
-        .MipLevels = 1,
-        .ArraySize = 1,
-        .Format    = DXGI_FORMAT_D24_UNORM_S8_UINT,
-        .SampleDesc{.Count = 1, .Quality = 0},
-        .Usage          = D3D11_USAGE_DEFAULT,
-        .BindFlags      = D3D11_BIND_DEPTH_STENCIL,
-        .CPUAccessFlags = 0,
-        .MiscFlags      = 0,
-    };
-
-    this->d3dDevice->CreateTexture2D(&depthStencilDesc, nullptr,
-                                     &this->depthStencilBuffer);
-    this->d3dDevice->CreateDepthStencilView(this->depthStencilBuffer, nullptr,
-                                            &this->depthStencilView);
-    this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
-                                               this->depthStencilView);
-
-    const char shader_data[] =
-        "float4 VS(float4 inPos : POSITION) : SV_Position\n"
-        "{ return inPos; }\n"
-
-        "float4 PS() : SV_Target\n"
-        "{ return float4(0.0f, 0.3f, 0.0f, 1.0f); }\n";
-
-    hr = D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
-                    nullptr, nullptr, nullptr, "VS", "vs_5_0", 0, 0,
-                    &this->vsBuffer, nullptr);
-    hr = D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
-                    nullptr, nullptr, nullptr, "PS", "ps_5_0", 0, 0,
-                    &this->psBuffer, nullptr);
-
-    // TODO: Shader class
-    if (FAILED(hr))
-    {
-        Debug::Error("Shader compilation error");
-    }
-
-    hr = this->d3dDevice->CreateVertexShader(this->vsBuffer->GetBufferPointer(),
-                                             this->vsBuffer->GetBufferSize(),
-                                             nullptr, &this->vs);
-    hr = this->d3dDevice->CreatePixelShader(this->psBuffer->GetBufferPointer(),
-                                            this->psBuffer->GetBufferSize(),
-                                            nullptr, &this->ps);
-
-    // TODO: check shader objects creation result
-
-    this->d3dDeviceContext->VSSetShader(this->vs, nullptr, 0);
-    this->d3dDeviceContext->PSSetShader(this->ps, nullptr, 0);
+    this->createSwapchain();
+    this->createRenderTargetView();
+    this->createDepthStencilView();
+    this->compileShaders();
 
     DX11::Vertex v[] = {
         {0.0f, 0.5f, 0.5f},
@@ -162,8 +69,8 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
     D3D11_VIEWPORT viewport = {
         .TopLeftX = 0,
         .TopLeftY = 0,
-        .Width    = static_cast<float>(windowSize.width),
-        .Height   = static_cast<float>(windowSize.height),
+        .Width    = static_cast<float>(this->windowSize.width),
+        .Height   = static_cast<float>(this->windowSize.height),
         .MinDepth = 0.0f,
         .MaxDepth = 1.0f,
     };
@@ -189,6 +96,133 @@ RendererD3D11::~RendererD3D11()
     this->vsBuffer->Release();
     this->psBuffer->Release();
     this->vertexLayout->Release();
+}
+
+void RendererD3D11::createSwapchain()
+{
+    constexpr IDXGIAdapter *DEFAULT_VIDEO_ADAPTER = nullptr;
+    constexpr HMODULE NULL_SOFTWARE_MODULE        = nullptr;
+    constexpr UINT runtimeLayersFlags             = D3D11_CREATE_DEVICE_DEBUG;
+
+    constexpr D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_0};
+    constexpr UINT featureLevelsCount           = 1;
+
+    // UINT msaaQualityLevels{};
+    // TODO: ID3D11Device::CheckMultisampleQualityLevels()
+
+    const DXGI_SWAP_CHAIN_DESC swapChainDesc = {
+        .BufferDesc{
+            .RefreshRate{.Numerator = 60, .Denominator = 1},
+            .Format           = DXGI_FORMAT_R8G8B8A8_UNORM,
+            .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
+            .Scaling          = DXGI_MODE_SCALING_UNSPECIFIED,
+        },
+        .SampleDesc{.Count = 1, .Quality = 0},
+        .BufferUsage  = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+        .BufferCount  = 1,
+        .OutputWindow = this->windowHandle,
+        .Windowed     = true,
+        .SwapEffect   = DXGI_SWAP_EFFECT_DISCARD,
+    };
+
+    hr = D3D11CreateDeviceAndSwapChain(
+        DEFAULT_VIDEO_ADAPTER, D3D_DRIVER_TYPE_HARDWARE, NULL_SOFTWARE_MODULE,
+        runtimeLayersFlags, featureLevels, featureLevelsCount,
+        D3D11_SDK_VERSION, &swapChainDesc, &this->swapChain, &this->d3dDevice,
+        nullptr, &this->d3dDeviceContext);
+
+    if (FAILED(hr))
+        RendererD3D11::Error(
+            std::format("Failed to create device and swapchain ({:08x})", hr));
+}
+
+void RendererD3D11::createRenderTargetView()
+{
+    hr = this->swapChain->GetBuffer(
+        0, __uuidof(ID3D11Texture2D),
+        reinterpret_cast<void **>(&this->backBuffer));
+
+    if (FAILED(hr))
+        RendererD3D11::Error("Failed to obtain back buffer");
+
+    hr = this->d3dDevice->CreateRenderTargetView(this->backBuffer, nullptr,
+                                                 &this->renderTargetView);
+
+    if (FAILED(hr))
+        RendererD3D11::Error("Failed to create render target view");
+}
+
+void RendererD3D11::createDepthStencilView()
+{
+    D3D11_TEXTURE2D_DESC depthStencilDesc = {
+        .Width     = this->windowSize.width,
+        .Height    = this->windowSize.height,
+        .MipLevels = 1,
+        .ArraySize = 1,
+        .Format    = DXGI_FORMAT_D24_UNORM_S8_UINT,
+        .SampleDesc{.Count = 1, .Quality = 0},
+        .Usage          = D3D11_USAGE_DEFAULT,
+        .BindFlags      = D3D11_BIND_DEPTH_STENCIL,
+        .CPUAccessFlags = 0,
+        .MiscFlags      = 0,
+    };
+
+    hr = this->d3dDevice->CreateTexture2D(&depthStencilDesc, nullptr,
+                                          &this->depthStencilBuffer);
+
+    if (FAILED(hr))
+        RendererD3D11::Error(
+            "(createDepthStencilView): Failed to create 2D Texture");
+
+    hr = this->d3dDevice->CreateDepthStencilView(
+        this->depthStencilBuffer, nullptr, &this->depthStencilView);
+
+    if (FAILED(hr))
+        RendererD3D11::Error(
+            "(createDepthStencilView): Failed to create depth/stencil view");
+
+    this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
+                                               this->depthStencilView);
+}
+
+void RendererD3D11::compileShaders()
+{
+    constexpr char shader_data[] =
+        "float4 VS(float4 inPos : POSITION) : SV_Position\n"
+        "{ return inPos; }\n"
+
+        "float4 PS() : SV_Target\n"
+        "{ return float4(0.0f, 0.3f, 0.0f, 1.0f); }\n";
+
+    hr = ::D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
+                      nullptr, nullptr, nullptr, "VS", "vs_5_0", 0, 0,
+                      &this->vsBuffer, nullptr);
+    hr = ::D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
+                      nullptr, nullptr, nullptr, "PS", "ps_5_0", 0, 0,
+                      &this->psBuffer, nullptr);
+
+    // TODO: Shader class?
+    if (FAILED(hr))
+        RendererD3D11::Error("Shader compilation error");
+
+    hr = this->d3dDevice->CreateVertexShader(this->vsBuffer->GetBufferPointer(),
+                                             this->vsBuffer->GetBufferSize(),
+                                             nullptr, &this->vs);
+
+    if (FAILED(hr))
+        RendererD3D11::Error("Failed to create vertex shader");
+
+    hr = this->d3dDevice->CreatePixelShader(this->psBuffer->GetBufferPointer(),
+                                            this->psBuffer->GetBufferSize(),
+                                            nullptr, &this->ps);
+
+    if (FAILED(hr))
+        RendererD3D11::Error("Failed to create pixel shader");
+
+    // TODO: check shader objects creation result
+
+    this->d3dDeviceContext->VSSetShader(this->vs, nullptr, 0);
+    this->d3dDeviceContext->PSSetShader(this->ps, nullptr, 0);
 }
 
 void RendererD3D11::Update()

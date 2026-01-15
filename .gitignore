@@ -51,7 +51,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-build/*
+build/
 projects/*
 *.zip
 *.7z
@@ -60,6 +60,8 @@ projects/*
 compile_commands.json
 
 .vs/
+.vscode/
+.xmake/
 
 *.vcxproj*
 *.sln*

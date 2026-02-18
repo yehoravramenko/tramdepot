@@ -50,19 +50,19 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
     };
 
     hr = this->d3dDevice->CreateBuffer(&vertexBufferDesc, &vertexBufferData,
-                                       &this->vertexBuffer);
+                                       this->vertexBuffer.put());
     // TODO: check buffer for errors
 
     UINT stride = sizeof(DX11::Vertex);
     UINT offset = 0;
-    this->d3dDeviceContext->IASetVertexBuffers(0, 1, &this->vertexBuffer,
+    this->d3dDeviceContext->IASetVertexBuffers(0, 1, this->vertexBuffer.put(),
                                                &stride, &offset);
 
     hr = this->d3dDevice->CreateInputLayout(
         DX11::Vertex::layout, 1, this->vsBuffer->GetBufferPointer(),
-        this->vsBuffer->GetBufferSize(), &this->vertexLayout);
+        this->vsBuffer->GetBufferSize(), this->vertexLayout.put());
 
-    this->d3dDeviceContext->IASetInputLayout(this->vertexLayout);
+    this->d3dDeviceContext->IASetInputLayout(this->vertexLayout.get());
     this->d3dDeviceContext->IASetPrimitiveTopology(
         D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -80,22 +80,6 @@ RendererD3D11::RendererD3D11(const HWND windowHandle,
 
 RendererD3D11::~RendererD3D11()
 {
-    this->swapChain->Release();
-    this->d3dDevice->Release();
-    this->d3dDeviceContext->Release();
-
-    this->renderTargetView->Release();
-    this->backBuffer->Release();
-
-    this->depthStencilView->Release();
-    this->depthStencilBuffer->Release();
-
-    this->vertexBuffer->Release();
-    this->vs->Release();
-    this->ps->Release();
-    this->vsBuffer->Release();
-    this->psBuffer->Release();
-    this->vertexLayout->Release();
 }
 
 void RendererD3D11::createSwapchain()
@@ -128,8 +112,8 @@ void RendererD3D11::createSwapchain()
     hr = D3D11CreateDeviceAndSwapChain(
         DEFAULT_VIDEO_ADAPTER, D3D_DRIVER_TYPE_HARDWARE, NULL_SOFTWARE_MODULE,
         runtimeLayersFlags, featureLevels, featureLevelsCount,
-        D3D11_SDK_VERSION, &swapChainDesc, &this->swapChain, &this->d3dDevice,
-        nullptr, &this->d3dDeviceContext);
+        D3D11_SDK_VERSION, &swapChainDesc, this->swapChain.put(),
+        this->d3dDevice.put(), nullptr, this->d3dDeviceContext.put());
 
     if (FAILED(hr))
         RendererD3D11::Error(
@@ -145,8 +129,8 @@ void RendererD3D11::createRenderTargetView()
     if (FAILED(hr))
         RendererD3D11::Error("Failed to obtain back buffer");
 
-    hr = this->d3dDevice->CreateRenderTargetView(this->backBuffer, nullptr,
-                                                 &this->renderTargetView);
+    hr = this->d3dDevice->CreateRenderTargetView(
+        this->backBuffer.get(), nullptr, this->renderTargetView.put());
 
     if (FAILED(hr))
         RendererD3D11::Error("Failed to create render target view");
@@ -168,38 +152,42 @@ void RendererD3D11::createDepthStencilView()
     };
 
     hr = this->d3dDevice->CreateTexture2D(&depthStencilDesc, nullptr,
-                                          &this->depthStencilBuffer);
+                                          this->depthStencilBuffer.put());
 
     if (FAILED(hr))
         RendererD3D11::Error(
             "(createDepthStencilView): Failed to create 2D Texture");
 
     hr = this->d3dDevice->CreateDepthStencilView(
-        this->depthStencilBuffer, nullptr, &this->depthStencilView);
+        this->depthStencilBuffer.get(), nullptr, this->depthStencilView.put());
 
     if (FAILED(hr))
         RendererD3D11::Error(
             "(createDepthStencilView): Failed to create depth/stencil view");
 
-    this->d3dDeviceContext->OMSetRenderTargets(1, &this->renderTargetView,
-                                               this->depthStencilView);
+    this->d3dDeviceContext->OMSetRenderTargets(1, this->renderTargetView.put(),
+                                               this->depthStencilView.get());
 }
 
 void RendererD3D11::compileShaders()
 {
-    constexpr char shader_data[] =
-        "float4 VS(float4 inPos : POSITION) : SV_Position\n"
-        "{ return inPos; }\n"
-
-        "float4 PS() : SV_Target\n"
-        "{ return float4(0.0f, 0.3f, 0.0f, 1.0f); }\n";
+    constexpr char shader_data[] = R"(
+        float4 VS(float4 inPos : POSITION) : SV_Position
+        { 
+            return inPos; 
+        }
+        float4 PS() : SV_Target
+        { 
+            return float4(0.0f, 0.3f, 0.0f, 1.0f); 
+        }
+       )";
 
     hr = ::D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
                       nullptr, nullptr, nullptr, "VS", "vs_5_0", 0, 0,
-                      &this->vsBuffer, nullptr);
+                      this->vsBuffer.put(), nullptr);
     hr = ::D3DCompile(shader_data, sizeof shader_data / sizeof shader_data[0],
                       nullptr, nullptr, nullptr, "PS", "ps_5_0", 0, 0,
-                      &this->psBuffer, nullptr);
+                      this->psBuffer.put(), nullptr);
 
     // TODO: Shader class?
     if (FAILED(hr))
@@ -207,22 +195,22 @@ void RendererD3D11::compileShaders()
 
     hr = this->d3dDevice->CreateVertexShader(this->vsBuffer->GetBufferPointer(),
                                              this->vsBuffer->GetBufferSize(),
-                                             nullptr, &this->vs);
+                                             nullptr, this->vs.put());
 
     if (FAILED(hr))
         RendererD3D11::Error("Failed to create vertex shader");
 
     hr = this->d3dDevice->CreatePixelShader(this->psBuffer->GetBufferPointer(),
                                             this->psBuffer->GetBufferSize(),
-                                            nullptr, &this->ps);
+                                            nullptr, this->ps.put());
 
     if (FAILED(hr))
         RendererD3D11::Error("Failed to create pixel shader");
 
     // TODO: check shader objects creation result
 
-    this->d3dDeviceContext->VSSetShader(this->vs, nullptr, 0);
-    this->d3dDeviceContext->PSSetShader(this->ps, nullptr, 0);
+    this->d3dDeviceContext->VSSetShader(this->vs.get(), nullptr, 0);
+    this->d3dDeviceContext->PSSetShader(this->ps.get(), nullptr, 0);
 }
 
 void RendererD3D11::Update()
@@ -232,11 +220,11 @@ void RendererD3D11::Update()
 void RendererD3D11::Draw()
 {
     const float juliaGreenColor[] = {0.0f, 0.5f, 0.0f, 1.0f};
-    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView,
+    this->d3dDeviceContext->ClearRenderTargetView(this->renderTargetView.get(),
                                                   juliaGreenColor);
     this->d3dDeviceContext->ClearDepthStencilView(
-        this->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f,
-        0);
+        this->depthStencilView.get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+        1.0f, 0);
 
     this->d3dDeviceContext->Draw(3, 0);
 

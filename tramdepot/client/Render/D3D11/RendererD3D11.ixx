@@ -4,6 +4,7 @@ export module TramDepot:RendererD3D11;
 
 import :IRenderer;
 import std;
+import wext;
 
 namespace TramDepot
 {
@@ -22,22 +23,22 @@ class RendererD3D11 : public IRenderer
     HWND windowHandle;
     WindowSize size;
 
-    IDXGISwapChain *swapChain{};
-    ID3D11Device *d3dDevice{};
-    ID3D11DeviceContext *d3dDeviceContext{};
+    wext::com_ptr<IDXGISwapChain> swapChain;
+    wext::com_ptr<ID3D11Device> d3dDevice;
+    wext::com_ptr<ID3D11DeviceContext> d3dDeviceContext;
 
-    ID3D11RenderTargetView *renderTargetView{};
-    ID3D11Texture2D *backBuffer{};
+    wext::com_ptr<ID3D11RenderTargetView> renderTargetView;
+    wext::com_ptr<ID3D11Texture2D> backBuffer;
 
-    ID3D11DepthStencilView *depthStencilView{};
-    ID3D11Texture2D *depthStencilBuffer{};
+    wext::com_ptr<ID3D11DepthStencilView> depthStencilView;
+    wext::com_ptr<ID3D11Texture2D> depthStencilBuffer;
 
-    ID3D11Buffer *vertexBuffer{};
-    ID3D11VertexShader *vs{};
-    ID3D11PixelShader *ps{};
-    ID3DBlob *vsBuffer{};
-    ID3DBlob *psBuffer{};
-    ID3D11InputLayout *vertexLayout{};
+    wext::com_ptr<ID3D11Buffer> vertexBuffer;
+    wext::com_ptr<ID3D11VertexShader> vs;
+    wext::com_ptr<ID3D11PixelShader> ps;
+    wext::com_ptr<ID3DBlob> vsBuffer;
+    wext::com_ptr<ID3DBlob> psBuffer;
+    wext::com_ptr<ID3D11InputLayout> vertexLayout;
 
     void createSwapchain();
     void createRenderTargetView();

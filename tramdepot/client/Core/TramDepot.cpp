@@ -24,12 +24,11 @@ void TramDepot::MainLoop()
         {
             if (e.value().type == EventType::Exit)
             {
-                goto mainloop_exit;
+                return;
             }
         }
         this->render.Update();
     }
-mainloop_exit:;
 }
 
 } // namespace TramDepot

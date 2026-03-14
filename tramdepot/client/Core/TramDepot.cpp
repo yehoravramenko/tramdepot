@@ -9,10 +9,6 @@ TramDepot::TramDepot(const unsigned int windowWidth,
                      const unsigned int windowHeight)
     : render(windowWidth, windowHeight)
 {
-#ifdef DEBUG
-    Debug::Init();
-#endif
-
     this->render.SetEventCallback(
         [this](const Event &e) { this->eventHandler.PostEvent(e); });
 }
@@ -34,13 +30,6 @@ void TramDepot::MainLoop()
         this->render.Update();
     }
 mainloop_exit:;
-}
-
-TramDepot::~TramDepot()
-{
-#ifdef DEBUG
-    Debug::Release();
-#endif
 }
 
 } // namespace TramDepot

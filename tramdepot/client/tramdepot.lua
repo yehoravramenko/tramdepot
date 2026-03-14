@@ -1,4 +1,5 @@
 project "TramDepot"
+   characterset "Unicode"
    kind "WindowedApp"
    language "C++"
    cppdialect "C++23"
@@ -25,7 +26,9 @@ project "TramDepot"
       -- Global includes
    includedirs {"."}
 
-   links {"d3d11", "D3DCompiler"}
+   links {"dxgi", "d3d11", "D3DCompiler"}
+
+   buildoptions {"/utf-8"}
 
    filter "configurations:Debug"
       defines { "DEBUG" }

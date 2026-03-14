@@ -25,7 +25,7 @@ void Time::Tick()
 
     ::QueryPerformanceCounter(&counter);
     deltaTime = (counter.QuadPart - Time::prevCounter) * Time::secondsPerCount;
-    Debug::Log(std::format("deltaTime: {}s", Time::deltaTime));
+    // Debug::Log(std::format("deltaTime: {}s", Time::deltaTime));
 
     if (deltaTime < 0.0)
         deltaTime = 0.0;

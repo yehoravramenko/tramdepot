@@ -1,14 +1,15 @@
 module;
 
-#ifdef _WIN32
 #include <Windows.h>
-#endif
 
+#include <cassert>
 #include <cstdio>
 
 module TramDepot:Debug;
 
 import std;
+
+static bool isInitialized = false;
 
 namespace TramDepot::Debug
 {
@@ -22,6 +23,7 @@ enum ASCIIColor
 static inline void output(const ASCIIColor col, const char *prefix,
                           std::string_view msg, std::ostream &out = std::cout)
 {
+    assert(isInitialized);
 #ifdef DEBUG
     std::println(out, "\x1b[;{}m{}:\x1b[0m    {}", static_cast<int>(col),
                  prefix, msg);
@@ -30,10 +32,7 @@ static inline void output(const ASCIIColor col, const char *prefix,
 
 void Init()
 {
-    static bool isInitialized = false;
-
-    if (isInitialized)
-        Debug::Error("Debug::Init was called twice");
+    assert(!isInitialized);
 
     AllocConsole();
     std::freopen("CONIN$", "r", stdin);

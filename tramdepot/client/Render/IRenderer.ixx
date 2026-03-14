@@ -2,6 +2,10 @@ module;
 #include <Windows.h>
 export module TramDepot:IRenderer;
 
+import std;
+
+import :Debug;
+
 namespace TramDepot
 {
 struct WindowSize

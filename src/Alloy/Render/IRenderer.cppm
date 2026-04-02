@@ -1,6 +1,7 @@
 module;
 #include "RGFW.h"
 export module Alloy:IRenderer;
+import :EventHandler;
 
 export namespace Alloy
 {
@@ -13,6 +14,8 @@ class IRenderer
     virtual ~IRenderer() {}
 
   protected:
-    RGFW_window *window{};
+    EventHandler *eventHandler;
+
+    RGFW_window *window;
 };
 } // namespace Alloy

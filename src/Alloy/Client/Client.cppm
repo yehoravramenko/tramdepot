@@ -1,5 +1,6 @@
 export module Alloy:Client;
 import :IRenderer;
+import :EventHandler;
 
 import std;
 
@@ -14,5 +15,6 @@ class Client
 
   private:
     std::unique_ptr<IRenderer> renderer;
+    EventHandler eventHandler;
 };
 } // namespace Alloy

@@ -5,5 +5,6 @@ import Alloy;
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    Alloy::Client client{};
+    Alloy::Client tramDepot{};
+    tramDepot.MainLoop();
 }

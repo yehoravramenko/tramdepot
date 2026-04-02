@@ -1,22 +1,21 @@
-module;
-#include <Windows.h>
 module Alloy:Client;
 
-constexpr WCHAR CLASS_NAME[] = TEXT("AlloyEngineWindowClass");
+import :RendererOpenGL;
 
 namespace Alloy
 {
 
-Client::Client(const HINSTANCE hInstance)
+Client::Client() : renderer(new RendererOpenGL)
 {
-    MessageBox(nullptr, L"Alloy!", L"", MB_OK | MB_ICONINFORMATION);
-    // WNDCLASSEX wc = {
-    //     .cbSize        = sizeof(WNDCLASSEX),
-    //     .hInstance     = hInstance,
-    //     .lpszClassName = CLASS_NAME,
-    // };
+}
 
-    // if (!RegisterClassEx(&wc))
+void Client::MainLoop()
+{
+    for (;;)
+    {
+        this->renderer->Update();
+        this->renderer->Draw();
+    }
 }
 
 } // namespace Alloy

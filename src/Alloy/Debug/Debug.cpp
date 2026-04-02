@@ -1,12 +1,12 @@
-#include "Debug.hpp"
-
+module;
 #include <Windows.h>
-
 #include <cassert>
 #include <cstdio>
-#include <print>
+module Alloy:Debug;
 
-namespace TramDepot
+import std;
+
+namespace Alloy
 {
 bool Debug::isInitialized = false;
 
@@ -79,4 +79,4 @@ void Debug::Warning(const std::string_view msg, const unsigned hr)
 
     std::exit(1);
 }
-} // namespace TramDepot
+} // namespace Alloy

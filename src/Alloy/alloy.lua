@@ -13,7 +13,7 @@ project "Alloy"
    files { "**.hpp", "**.cppm", "**.cpp",
       "thirdparty/gl3w/src/gl3w.c"}
 
-   includedirs {".", "thirdparty/gl3w/include"}
+   includedirs {".", "thirdparty/gl3w/include", "thirdparty/RGFW/include"}
    publicmoduledirectories {"%{prj.location}/"}
 
    links {}

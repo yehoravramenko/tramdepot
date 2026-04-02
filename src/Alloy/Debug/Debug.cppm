@@ -1,10 +1,8 @@
-#pragma once
+export module Alloy:Debug;
 
-#include <string_view>
-#include <string>
-#include <iostream>
+import std;
 
-namespace TramDepot
+namespace Alloy
 {
 enum ASCIIColor
 {
@@ -13,7 +11,7 @@ enum ASCIIColor
     Yellow = 33,
 };
 
-class Debug
+export class Debug
 {
   public:
     Debug() = delete;
@@ -35,4 +33,4 @@ class Debug
                        std::ostream &out = std::cout);
 };
 
-} // namespace TramDepot
+} // namespace Alloy

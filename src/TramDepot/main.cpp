@@ -5,5 +5,5 @@ import Alloy;
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    Alloy::Client client(nullptr);
+    Alloy::Client client{};
 }

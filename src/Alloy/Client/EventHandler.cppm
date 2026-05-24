@@ -14,7 +14,7 @@ class EventHandler
 {
   public:
     void PushEvent(const Event &event);
-    const Event PopEvent();
+    const std::optional<Event> PopEvent();
 
   private:
     std::queue<Event> events;

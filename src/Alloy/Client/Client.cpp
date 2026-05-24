@@ -7,26 +7,28 @@ import std;
 namespace Alloy
 {
 
-Client::Client()
+Client::Client() : render(&eventHandler)
 {
-    Debug::Init();
-    this->renderer = std::make_unique<RendererOpenGL>(&this->eventHandler);
+}
+
+Client::~Client()
+{
+    Debug::Release();
 }
 
 void Client::MainLoop()
 {
     for (;;)
     {
-        Event currentEvent = Event::None;
-        while ((currentEvent = this->eventHandler.PopEvent()),
-               currentEvent != Event::None)
+        for (std::optional<Event> currentEvent;
+             currentEvent = this->eventHandler.PopEvent(),
+             currentEvent.has_value();)
         {
             if (currentEvent == Event::WindowClosed)
                 return;
         }
 
-        this->renderer->Update();
-        this->renderer->Draw();
+        this->render.Update();
     }
 }
 

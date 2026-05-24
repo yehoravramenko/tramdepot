@@ -8,10 +8,10 @@ void EventHandler::PushEvent(const Event &event)
     this->events.push(event);
 }
 
-const Event EventHandler::PopEvent()
+const std::optional<Event> EventHandler::PopEvent()
 {
     if (this->events.size() == 0)
-        return Event::None;
+        return std::nullopt;
 
     Event &&currentEvent = std::move(this->events.front());
     this->events.pop();

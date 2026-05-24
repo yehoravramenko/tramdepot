@@ -1,6 +1,6 @@
 export module Alloy:Client;
-import :IRenderer;
 import :EventHandler;
+import :Render;
 
 import std;
 
@@ -10,11 +10,12 @@ class Client
 {
   public:
     ALLOY_EXPORT Client();
+    ALLOY_EXPORT ~Client();
 
     ALLOY_EXPORT void MainLoop();
 
   private:
-    std::unique_ptr<IRenderer> renderer;
     EventHandler eventHandler;
+    Render render;
 };
 } // namespace Alloy

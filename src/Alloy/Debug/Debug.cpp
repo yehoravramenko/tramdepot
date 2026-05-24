@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 module;
 #include <Windows.h>
 #include <cassert>
@@ -14,8 +15,9 @@ void Debug::output(const ASCIIColor col, const char *prefix,
                    const std::string_view msg, const unsigned hr,
                    std::ostream &out)
 {
-    assert(Debug::isInitialized);
-#ifdef DEBUG
+    if (!Debug::isInitialized)
+        Debug::Init();
+
     std::print(out, "\x1b[;{}m{}:\x1b[0m    {}", static_cast<int>(col), prefix,
                msg);
 
@@ -23,17 +25,17 @@ void Debug::output(const ASCIIColor col, const char *prefix,
         std::println(" ({:#0x})", hr);
     else
         std::println();
-#endif // DEBUG
 }
 
 void Debug::Init()
 {
     assert(!Debug::isInitialized);
+    assert(_DEBUG);
 
     AllocConsole();
-    std::freopen("CONIN$", "r", stdin);
-    std::freopen("CONOUT$", "w", stdout);
-    std::freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
 
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -49,6 +51,8 @@ void Debug::Init()
 
 void Debug::Release()
 {
+    if (!Debug::isInitialized)
+        return;
     FreeConsole();
 }
 

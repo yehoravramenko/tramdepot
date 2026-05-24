@@ -5,6 +5,7 @@ import Alloy;
 
 int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-    Alloy::Client tramDepot{};
+    // TODO: check _DEBUG and add linker flags for console
+    Alloy::Client tramDepot;
     tramDepot.MainLoop();
 }

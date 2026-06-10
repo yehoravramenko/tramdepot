@@ -1,8 +1,10 @@
 module;
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <windowsx.h>
 module Alloy:Window;
 import :Debug;
+import :Input;
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam,
                                 LPARAM lParam)
@@ -43,6 +45,9 @@ Window::Window(EventHandler *eventHandler) : eventHandler(eventHandler)
                        CW_USEDEFAULT, CW_USEDEFAULT, this->width, this->height,
                        nullptr, nullptr, instanceHandle, nullptr);
 
+    SetWindowLongPtr(this->handle, GWLP_USERDATA,
+                     reinterpret_cast<LONG_PTR>(this));
+
     const HDC hdc = GetDC(this->handle);
 
     constexpr PIXELFORMATDESCRIPTOR pixelFormatDesc = {
@@ -71,8 +76,16 @@ void Window::Update()
     MSG msg{};
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE) > 0)
     {
-        if (msg.message == WM_QUIT)
-            this->eventHandler->PushEvent(Event::WindowClosed);
+        switch (msg.message)
+        {
+        case WM_QUIT:
+            this->eventHandler->PushEvent({EventType::WindowClosed});
+            break;
+        case WM_MOUSEMOVE:
+            Input::mouseMoved(GET_X_LPARAM(msg.lParam),
+                              GET_Y_LPARAM(msg.lParam));
+            break;
+        }
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);

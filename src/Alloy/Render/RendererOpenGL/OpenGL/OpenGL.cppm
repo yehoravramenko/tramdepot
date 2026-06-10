@@ -1,3 +1,3 @@
 export module Alloy:OpenGL;
 
-export import :OpenGL.Shader;
+export import :OpenGL.BasicShader;

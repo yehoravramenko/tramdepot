@@ -13,12 +13,14 @@ project "Alloy"
    files { "**.hpp", "**.cppm", "**.cpp",
       "thirdparty/gl3w/src/gl3w.c"}
 
-   includedirs {".", "thirdparty/gl3w/include", "thirdparty/RGFW/include"}
+   includedirs {".", "thirdparty/gl3w/include", "thirdparty/glm/include", "thirdparty/stb/include"}
    publicmoduledirectories {"%{prj.location}/"}
 
    links {}
 
    buildoptions {"/utf-8"}
+
+   vectorextensions "avx2"
 
    defines {"ALLOY_EXPORT=__declspec(dllexport)"}
 

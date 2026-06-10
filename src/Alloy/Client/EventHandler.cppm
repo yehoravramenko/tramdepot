@@ -4,10 +4,17 @@ import std;
 
 export namespace Alloy
 {
-enum class Event
+enum class EventType
 {
     None = 0,
     WindowClosed,
+    KeyPressed,
+};
+
+struct Event
+{
+    EventType Type;
+    // std::variant<std::monostate, wchar_t> Data;
 };
 
 class EventHandler

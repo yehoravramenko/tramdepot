@@ -8,10 +8,10 @@ import :Debug;
 namespace Alloy::OpenGL
 {
 
-void Shader::Create(const GLchar *vertexShaderSource,
-                    const GLchar *fragmentShaderSource)
+void Shader::Compile(const GLchar *vertexShaderSource,
+                     const GLchar *fragmentShaderSource)
 {
-    assert(this->program == 0 && "Shader::Create called twice.");
+    assert(this->program == 0 && "IShader::Create called twice.");
 
     GLuint vertexShader = 0, fragmentShader = 0;
     int result = 0;
@@ -52,6 +52,28 @@ void Shader::Use() const
     assert(this->program != 0 &&
            "Using program with object id 0 (Uninitialized)");
     glUseProgram(this->program);
+}
+
+std::optional<GLuint> Shader::GetUniformLocation(std::string_view name) const
+{
+    GLuint id = glGetUniformLocation(this->program, name.data());
+    if (id == -1)
+    {
+        Debug::Warning(std::format("{} uniform doesn\'t exist", name));
+        return {};
+    }
+
+    return id;
+}
+
+void Shader::SetUniformMatrix4(GLuint id, const GLfloat *value)
+{
+    glUniformMatrix4fv(id, 1, GL_FALSE, value);
+}
+
+void Shader::SetUniformTexture(GLuint id, GLuint texID)
+{
+    glUniform1i(id, texID);
 }
 
 } // namespace Alloy::OpenGL

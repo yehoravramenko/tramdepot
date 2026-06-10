@@ -14,6 +14,8 @@ class Window
     void Update();
 
     HWND GetHandle() const { return this->handle; }
+    int GetWidth() const { return this->width; }
+    int GetHeight() const { return this->height; }
 
   private:
     int width  = 1280;

@@ -36,6 +36,12 @@ class RendererOpenGL : public IRenderer
     glm::vec3 cam_front{0, 0, -1};
     glm::vec3 cam_target{0, 0, 0};
     glm::vec3 cam_up{0, 1, 0};
+    float pitch{}, yaw{-90.f}, roll{};
+    int mouseX{}, mouseY{};
+    float mouseSensitivity{0.1f};
+    glm::ivec2 screenCenter;
+    glm::ivec2 lastMousePosition{};
+    bool RMBPressed{false};
 
     glm::mat4 projection;
     glm::mat4 view;

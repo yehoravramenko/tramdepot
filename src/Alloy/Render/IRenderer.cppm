@@ -10,6 +10,8 @@ export namespace Alloy
 class IRenderer
 {
   public:
+    IRenderer(EventHandler *const eh, Window *const w)
+        : eventHandler(eh), window(w) {};
     virtual void Update() = 0;
     virtual void Draw()   = 0;
 

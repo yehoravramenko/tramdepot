@@ -81,14 +81,12 @@ void Window::Update()
         case WM_QUIT:
             this->eventHandler->PushEvent({EventType::WindowClosed});
             break;
-        case WM_MOUSEMOVE:
-            Input::mouseMoved(GET_X_LPARAM(msg.lParam),
-                              GET_Y_LPARAM(msg.lParam));
-            break;
         }
 
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    Input::updateMouse();
 }
 } // namespace Alloy

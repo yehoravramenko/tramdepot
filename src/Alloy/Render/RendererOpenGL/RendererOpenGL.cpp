@@ -8,6 +8,7 @@ module Alloy:RendererOpenGL;
 
 import :Debug;
 import :Input;
+import :Math;
 import :Time;
 import :OpenGL;
 
@@ -29,10 +30,9 @@ namespace Alloy
 
 RendererOpenGL::RendererOpenGL(EventHandler *const eventHandler,
                                Window *const window)
+    : IRenderer(eventHandler, window),
+      screenCenter(window->GetWidth() / 2, window->GetHeight() / 2)
 {
-    this->eventHandler = eventHandler;
-    this->window       = window;
-
     this->deviceContext = GetDC(this->window->GetHandle());
     this->glContext     = wglCreateContext(this->deviceContext);
     wglMakeCurrent(this->deviceContext, this->glContext);
@@ -146,8 +146,45 @@ void RendererOpenGL::Update()
     assert(mvpID);
     this->shader.SetUniformMatrix4(*mvpID, &this->mvp[0][0]);
 
-    // Debug::Log(std::format("{}, {}, {}", this->cam_position.x,
-    //                        this->cam_position.y, this->cam_position.z));
+    if (auto r = Input::GetMouseButton(MouseButton::Right);
+        r and !this->RMBPressed)
+    {
+        this->lastMousePosition = {Input::GetMouseX(), Input::GetMouseY()};
+        this->RMBPressed        = true;
+        Input::SetMousePos(this->screenCenter);
+        Input::HideCursor();
+    }
+    else if (r and this->RMBPressed)
+    {
+        glm::ivec2 mousePosition(Input::GetMouseX(), Input::GetMouseY());
+
+        if (mousePosition != this->screenCenter)
+        {
+            glm::vec2 mouseOffset{mousePosition.x - this->screenCenter.x,
+                                  this->screenCenter.y - mousePosition.y};
+
+            mouseOffset *= this->mouseSensitivity;
+
+            yaw += mouseOffset.x;
+            pitch += mouseOffset.y;
+
+            Math::Clamp(pitch, -90.f, 90.f);
+            glm::vec3 cam_dir(cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+                              sin(glm::radians(pitch)),
+                              sin(glm::radians(yaw)) *
+                                  cos(glm::radians(pitch)));
+
+            this->cam_front = glm::normalize(cam_dir);
+
+            Input::SetMousePos(this->screenCenter);
+        }
+    }
+    else if (this->RMBPressed)
+    {
+        this->RMBPressed = false;
+        Input::SetMousePos(this->lastMousePosition);
+        Input::ShowCursor();
+    }
 }
 
 RendererOpenGL::~RendererOpenGL()

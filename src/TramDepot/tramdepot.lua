@@ -1,29 +1,49 @@
 project "TramDepot"
-   characterset "Unicode"
-   kind "WindowedApp"
-   language "C++"
-   cppdialect "C++23"
-   buildstlmodules "On"
+    --location "../../build/TramDepot"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++26"
+    staticruntime "off"
 
-   targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
-   objdir (_MAIN_SCRIPT_DIR.."/build/obj/ItsTrain/%{cfg.buildcfg}/")
+    targetdir ("%{wks.location}/build/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
+    objdir ("%{wks.location}/build/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
 
-   warnings "Extra"
+    files
+    {
+       "**.h",
+       "**.hpp",
+       "**.cpp",
+       "tramdepot.lua"
+    }
 
-   files { "**.hpp", "**.cppm", "**.cpp"}
+    includedirs
+    {
+        "../Alloy"
+    }
 
-   includedirs {".", "%{prj.location}/../Alloy"}
+    links
+    {
+        "Alloy"
+    }
 
-   links {"Alloy"}
+    filter "system:windows"
+        systemversion "latest"
+        defines 
+        { 
+            "ALLOY_API=__declspec(dllimport)" 
+        }
 
-   buildoptions {"/utf-8"}
+        postbuildcommands
+        {
+            "{COPYFILE} %{cfg.targetdir}/../Alloy/Alloy.dll %{cfg.targetdir}/"
+        }
 
-   defines {"ALLOY_EXPORT=__declspec(dllimport)"}
+    filter "configurations:Debug"
+        defines "ALLOY_DEBUG"
+        runtime "Debug"
+        symbols "on"
 
-   filter "configurations:Debug"
-      defines { "DEBUG" }
-      symbols "On"
-
-   filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"
+    filter "configurations:Release"
+        defines "ALLOY_NDEBUG"
+        runtime "Release"
+        optimize "on"

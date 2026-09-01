@@ -1,11 +1,7 @@
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include "Alloy.hpp"
 
-import Alloy;
-
-int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+int main(int, char **)
 {
     // TODO: check _DEBUG and add linker flags for console
-    Alloy::Client tramDepot;
-    tramDepot.MainLoop();
+    alloy_test();
 }

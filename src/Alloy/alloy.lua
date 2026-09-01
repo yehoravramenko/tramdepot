@@ -1,33 +1,39 @@
 project "Alloy"
-   characterset "Unicode"
-   kind "SharedLib"
-   language "C++"
-   cppdialect "C++23"
-   buildstlmodules "On"
+    --location "../../build/Alloy"
+    kind "SharedLib"
+    language "C++"
+    cppdialect "C++26"
+    staticruntime "off"
 
-   targetdir (_MAIN_SCRIPT_DIR.."/build/%{cfg.buildcfg}/bin/")
-   objdir (_MAIN_SCRIPT_DIR.."/build/obj/Alloy/%{cfg.buildcfg}/")
+    targetdir ("%{wks.location}/build/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
+    objdir ("%{wks.location}/build/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
 
-   warnings "Extra"
+    files
+    {
+       "**.h",
+       "**.hpp",
+       "**.cpp",
+       "alloy.lua"
+    }
 
-   files { "**.hpp", "**.cppm", "**.cpp",
-      "thirdparty/gl3w/src/gl3w.c"}
+    includedirs
+    {
+        "."
+    }
 
-   includedirs {".", "thirdparty/gl3w/include", "thirdparty/glm/include", "thirdparty/stb/include"}
-   publicmoduledirectories {"%{prj.location}/"}
+    filter "system:windows"
+        systemversion "latest"
+        defines 
+        { 
+            "ALLOY_API=__declspec(dllexport)" 
+        }
 
-   links {}
+    filter "configurations:Debug"
+        defines "ALLOY_DEBUG"
+        runtime "Debug"
+        symbols "on"
 
-   buildoptions {"/utf-8"}
-
-   vectorextensions "avx2"
-
-   defines {"ALLOY_EXPORT=__declspec(dllexport)"}
-
-   filter "configurations:Debug"
-      defines { "DEBUG" }
-      symbols "On"
-
-   filter "configurations:Release"
-      defines { "NDEBUG" }
-      optimize "On"
+    filter "configurations:Release"
+        defines "ALLOY_NDEBUG"
+        runtime "Release"
+        optimize "on"

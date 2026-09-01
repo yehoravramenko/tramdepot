@@ -4,4 +4,8 @@ int main(int, char **)
 {
     // TODO: check _DEBUG and add linker flags for console
     Alloy::Client CL;
+
+    CL.MainLoop();
+
+    return 0;
 }

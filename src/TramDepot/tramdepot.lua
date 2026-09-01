@@ -18,12 +18,19 @@ project "TramDepot"
 
     includedirs
     {
-        "../Alloy"
+        "../Alloy",
+        "%{wks.location}/vendor/SDL3/include"
+    }
+
+    libdirs
+    {
+        "%{wks.location}/vendor/SDL3/lib/x64"
     }
 
     links
     {
-        "Alloy"
+        "Alloy",
+        "SDL3"
     }
 
     filter "system:windows"
@@ -35,15 +42,18 @@ project "TramDepot"
 
         postbuildcommands
         {
-            "{COPYFILE} %{cfg.targetdir}/../Alloy/Alloy.dll %{cfg.targetdir}/"
+            "{COPYFILE} %{cfg.targetdir}/../Alloy/Alloy.dll %{cfg.targetdir}/",
+            "{COPYFILE} %{wks.location}/vendor/SDL3/lib/x64/SDL3.dll %{cfg.targetdir}/"
         }
 
     filter "configurations:Debug"
+        kind "ConsoleApp"
         defines "ALLOY_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
+        kind "WindowedApp"
         defines "ALLOY_NDEBUG"
         runtime "Release"
         optimize "on"

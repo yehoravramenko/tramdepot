@@ -18,7 +18,18 @@ project "Alloy"
 
     includedirs
     {
-        "."
+        ".",
+        "%{wks.location}/vendor/SDL3/include"
+    }
+
+    libdirs
+    {
+        "%{wks.location}/vendor/SDL3/lib/x64"
+    }
+
+    links
+    {
+        "SDL3"
     }
 
     filter "system:windows"

@@ -8,6 +8,8 @@ project "TramDepot"
     targetdir ("%{wks.location}/build/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
     objdir ("%{wks.location}/build/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
 
+    dependson { "Alloy" }
+
     files
     {
        "**.h",
@@ -47,13 +49,11 @@ project "TramDepot"
         }
 
     filter "configurations:Debug"
-        kind "ConsoleApp"
         defines "ALLOY_DEBUG"
         runtime "Debug"
         symbols "on"
 
     filter "configurations:Release"
-        kind "WindowedApp"
         defines "ALLOY_NDEBUG"
         runtime "Release"
         optimize "on"

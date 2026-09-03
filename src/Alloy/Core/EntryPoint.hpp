@@ -1,12 +1,11 @@
 #pragma once
 #include "Client/Client.hpp"
+#include "Debug/Debug.hpp"
 
 extern Alloy::Client *AllocClient();
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-
-static Alloy::Client *g_CL = nullptr;
 
 int main(int argc, char *argv[])
 {
@@ -15,11 +14,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    g_CL = AllocClient();
+    Alloy::Client *CL = AllocClient();
 
-    g_CL->MainLoop();
+    CL->MainLoop();
 
-    delete g_CL;
+    delete CL;
     SDL_Quit();
 
     return 0;

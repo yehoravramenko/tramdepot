@@ -1,5 +1,5 @@
 #include "Client.hpp"
-#include <Windows.h>
+#include <SDL3/SDL.h>
 
 namespace Alloy
 {
@@ -9,6 +9,25 @@ Client::Client() : m_Window(1024, 768)
 
 void Client::MainLoop()
 {
-    MessageBox(nullptr, L"test", L"", MB_OK);
+    bool isRunning = true;
+    SDL_Event event{};
+
+    OnInit();
+
+    while (isRunning)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_EVENT_QUIT)
+                isRunning = false;
+
+            OnEvent(&event);
+        }
+
+        OnUpdate(0.016f);
+        OnRender();
+    }
+
+    OnShutdown();
 }
 } // namespace Alloy

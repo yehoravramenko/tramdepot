@@ -1,5 +1,6 @@
 #pragma once
 #include "Window/Window.hpp"
+#include <SDL3/SDL.h>
 
 namespace Alloy
 {
@@ -13,10 +14,9 @@ class Client
 
     virtual void OnInit() {}
     virtual void OnUpdate(float deltaTime) {}
+    virtual void OnEvent(const SDL_Event *event) {}
     virtual void OnRender() {}
     virtual void OnShutdown() {}
-
-    // void Shutdown();
 
   private:
     Window m_Window;

@@ -1,10 +1,13 @@
 #include "Client.hpp"
+#include "Debug/Debug.hpp"
+
 #include <SDL3/SDL.h>
 
 namespace Alloy
 {
 Client::Client() : m_Window(1024, 768)
 {
+    m_Renderer = std::make_unique<Renderer>(m_Window.GetWindowHandle());
 }
 
 void Client::MainLoop()

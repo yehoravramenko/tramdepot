@@ -21,6 +21,9 @@ void Log(std::string_view msg, LogLevel logLevel)
     switch (logLevel)
     {
     case LogLevel::Message:
+        prefix = "LOG";
+        break;
+    case LogLevel::Warning:
         prefix = "WARNING";
         break;
     case LogLevel::Error:
@@ -28,6 +31,12 @@ void Log(std::string_view msg, LogLevel logLevel)
         break;
     }
     _print(prefix, msg, static_cast<int>(logLevel));
+
+    if (logLevel == LogLevel::Error)
+    {
+        MessageBoxA(nullptr, msg.data(), "Error", MB_OK | MB_ICONERROR);
+        ExitProcess(1);
+    }
 }
 
 } // namespace Alloy::Debug

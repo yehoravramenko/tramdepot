@@ -1,5 +1,4 @@
 project "Alloy"
-    --location "../../build/Alloy"
     kind "SharedLib"
     language "C++"
     cppdialect "C++26"
@@ -38,6 +37,11 @@ project "Alloy"
         { 
             "ALLOY_API=__declspec(dllexport)" 
         }
+
+	postbuildcommands
+	{
+    	   '{COPYFILEIFNEWER} "%{cfg.buildtarget.abspath}" "%{cfg.targetdir}/../TramDepot/"',
+	}
 
     filter "configurations:Debug"
         defines "ALLOY_DEBUG"

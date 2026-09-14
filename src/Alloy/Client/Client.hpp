@@ -1,5 +1,8 @@
 #pragma once
 #include "Window/Window.hpp"
+#include "Renderer/Renderer.hpp"
+
+#include <memory>
 #include <SDL3/SDL.h>
 
 namespace Alloy
@@ -20,5 +23,6 @@ class Client
 
   private:
     Window m_Window;
+    std::unique_ptr<Renderer> m_Renderer;
 };
 } // namespace Alloy

@@ -1,14 +1,13 @@
 project "TramDepot"
-    --location "../../build/TramDepot"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++26"
     staticruntime "off"
 
+    dependson "Alloy"
+
     targetdir ("%{wks.location}/build/bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
     objdir ("%{wks.location}/build/obj/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}/%{prj.name}")
-
-    dependson { "Alloy" }
 
     files
     {
@@ -20,7 +19,7 @@ project "TramDepot"
 
     includedirs
     {
-        "../Alloy",
+        "%{wks.location}/src/Alloy",
         "%{wks.location}/vendor/SDL3/include"
     }
 
@@ -42,11 +41,10 @@ project "TramDepot"
             "ALLOY_API=__declspec(dllimport)" 
         }
 
-        postbuildcommands
-        {
-            "{COPYFILE} %{cfg.targetdir}/../Alloy/Alloy.dll %{cfg.targetdir}/",
-            "{COPYFILE} %{wks.location}/vendor/SDL3/lib/x64/SDL3.dll %{cfg.targetdir}/"
-        }
+	postbuildcommands
+	{
+    	   '{COPYFILEIFNEWER} "%{wks.location}/vendor/SDL3/lib/x64/SDL3.dll" "%{cfg.targetdir}/"'
+	}
 
     filter "configurations:Debug"
         defines "ALLOY_DEBUG"

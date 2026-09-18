@@ -7,7 +7,8 @@ namespace Alloy
 {
 Client::Client() : m_Window(1024, 768)
 {
-    m_Renderer = std::make_unique<Renderer>(m_Window.GetWindowHandle());
+    m_Renderer = std::make_unique<Renderer>(m_Window.GetWindowHandle(),
+                                            m_Window.GetWindowSize());
 }
 
 void Client::MainLoop()
@@ -27,8 +28,12 @@ void Client::MainLoop()
             OnEvent(&event);
         }
 
+        // TODO: set up fixed fps delta time
         OnUpdate(0.016f);
+
+        m_Renderer->BeginFrame();
         OnRender();
+        m_Renderer->EndFrame();
     }
 
     OnShutdown();

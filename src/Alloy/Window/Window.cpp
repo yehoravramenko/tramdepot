@@ -5,7 +5,7 @@
 
 namespace Alloy
 {
-Window::Window(int width, int height)
+Window::Window(int width, int height) : m_Size(width, height)
 {
     m_SDLWindow = SDL_CreateWindow("Alloy Engine", width, height, 0);
 
@@ -23,11 +23,15 @@ HWND Window::GetWindowHandle() const
 
     if (handle == nullptr)
     {
-        Debug::Log("Failed to get HWND", Debug::LogLevel::Error);
-        // return nullptr;
+        Debug::Error("Failed to get HWND");
     }
 
     return handle;
+}
+
+std::array<int, 2> Window::GetWindowSize() const
+{
+    return m_Size;
 }
 
 Window::~Window()

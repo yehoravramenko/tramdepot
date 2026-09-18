@@ -1,6 +1,4 @@
 #include "Debug.hpp"
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include <assert.h>
 
 #include <print>
@@ -31,12 +29,21 @@ void Log(std::string_view msg, LogLevel logLevel)
         break;
     }
     _print(prefix, msg, static_cast<int>(logLevel));
+}
 
-    if (logLevel == LogLevel::Error)
-    {
-        MessageBoxA(nullptr, msg.data(), "Error", MB_OK | MB_ICONERROR);
-        ExitProcess(1);
-    }
+void Error(std::string_view msg)
+{
+    Log(msg, LogLevel::Error);
+    MessageBoxA(nullptr, msg.data(), "Error", MB_OK | MB_ICONERROR);
+
+    ExitProcess(1);
+}
+
+void Debug::IF_HR_FAILED(HRESULT hr, std::string_view msg)
+{
+    if (FAILED(hr))
+        Error(std::format("{} (HRESULT: {:#0x})", msg,
+                          static_cast<uint32_t>(hr)));
 }
 
 } // namespace Alloy::Debug

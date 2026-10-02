@@ -26,5 +26,11 @@ class Renderer
     ComPtr<ID3D11DeviceContext> m_ImmediateContext;
     ComPtr<IDXGISwapChain> m_SwapChain;
     ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
+
+    ComPtr<ID3D11Buffer> m_VertexBuffer;
+
+    ComPtr<ID3D11InputLayout> m_InputLayout;
+    ComPtr<ID3D11VertexShader> m_VertexShader;
+    ComPtr<ID3D11PixelShader> m_PixelShader;
 };
 } // namespace Alloy

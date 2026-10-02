@@ -1,5 +1,6 @@
 #pragma once
 #include <string_view>
+#include <format>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

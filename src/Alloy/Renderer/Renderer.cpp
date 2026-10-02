@@ -1,5 +1,9 @@
 #include "Renderer.hpp"
 #include "Debug/Debug.hpp"
+#include "ShaderUtils.hpp"
+
+#include <D3DCompiler.h>
+#include <DirectXMath.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -7,6 +11,18 @@
 
 namespace Alloy
 {
+struct Vertex
+{
+    DirectX::XMFLOAT3 pos;
+    DirectX::XMFLOAT4 color;
+};
+
+static Vertex verts[] = {
+    {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
+    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}},
+};
+
 Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
     : m_WindowHandle(windowHandle), m_Size(windowSize)
 {
@@ -68,6 +84,41 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
     };
 
     m_ImmediateContext->RSSetViewports(1, &viewport);
+
+    const D3D11_BUFFER_DESC vertexBufferDesc = {
+        .ByteWidth = sizeof(verts),
+        .BindFlags = D3D11_BIND_VERTEX_BUFFER,
+    };
+
+    const D3D11_SUBRESOURCE_DATA resourceData = {.pSysMem = verts};
+
+    m_d3dDevice->CreateBuffer(&vertexBufferDesc, &resourceData,
+                              m_VertexBuffer.GetAddressOf());
+
+    auto const vsBytecode = ReadCSOFile("Shaders_VS.cso");
+
+    hr =
+        m_d3dDevice->CreateVertexShader(vsBytecode.data(), vsBytecode.size(),
+                                        nullptr, m_VertexShader.GetAddressOf());
+    Debug::IF_HR_FAILED(hr, "Failed to create vertex shader");
+
+    constexpr D3D11_INPUT_ELEMENT_DESC layout[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+         D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
+         D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
+
+    hr = m_d3dDevice->CreateInputLayout(layout, ARRAYSIZE(layout),
+                                        vsBytecode.data(), vsBytecode.size(),
+                                        m_InputLayout.GetAddressOf());
+
+    Debug::IF_HR_FAILED(hr, "Failed to create input layout");
+
+    auto const psBytecode = ReadCSOFile("Shaders_PS.cso");
+    m_d3dDevice->CreatePixelShader(psBytecode.data(), psBytecode.size(),
+                                   nullptr, m_PixelShader.GetAddressOf());
+    Debug::IF_HR_FAILED(hr, "Failed to create pixel shader");
 }
 
 void Renderer::BeginFrame()
@@ -80,11 +131,22 @@ void Renderer::BeginFrame()
     m_ImmediateContext->ClearRenderTargetView(m_RenderTargetView.Get(),
                                               clearColor);
 
-    m_SwapChain->Present(1, 0);
+    UINT stride = sizeof(Vertex);
+    UINT offset = 0;
+    m_ImmediateContext->IASetInputLayout(m_InputLayout.Get());
+    m_ImmediateContext->VSSetShader(m_VertexShader.Get(), nullptr, 0);
+    m_ImmediateContext->PSSetShader(m_PixelShader.Get(), nullptr, 0);
+    m_ImmediateContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(),
+                                           &stride, &offset);
+    m_ImmediateContext->IASetPrimitiveTopology(
+        D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    m_ImmediateContext->Draw(3, 0);
 }
 
 void Renderer::EndFrame()
 {
+    m_SwapChain->Present(1, 0);
 }
 
 } // namespace Alloy

@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "Debug/Debug.hpp"
+#include "ClientUtils.hpp"
 
 #include <SDL3/SDL.h>
 
@@ -7,6 +8,8 @@ namespace Alloy
 {
 Client::Client() : m_Window(1024, 768)
 {
+    SetWorkingDirectory(GetExecutableDirectory());
+
     m_Renderer = std::make_unique<Renderer>(m_Window.GetWindowHandle(),
                                             m_Window.GetWindowSize());
 }

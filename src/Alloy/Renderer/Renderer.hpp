@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <wrl/client.h>
 #include <d3d11.h>
+#include <DirectXMath.h>
 
 #include <array>
 
@@ -10,6 +11,11 @@ using Microsoft::WRL::ComPtr;
 
 namespace Alloy
 {
+struct alignas(16) TransformCB
+{
+    DirectX::XMMATRIX worldViewProjection;
+};
+
 class Renderer
 {
   public:
@@ -28,9 +34,12 @@ class Renderer
     ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
 
     ComPtr<ID3D11Buffer> m_VertexBuffer;
+    ComPtr<ID3D11Buffer> m_ConstantBuffer;
 
     ComPtr<ID3D11InputLayout> m_InputLayout;
     ComPtr<ID3D11VertexShader> m_VertexShader;
     ComPtr<ID3D11PixelShader> m_PixelShader;
+
+    void _ClearFramebuffer();
 };
 } // namespace Alloy

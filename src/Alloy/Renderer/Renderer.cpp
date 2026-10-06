@@ -95,6 +95,16 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
     m_d3dDevice->CreateBuffer(&vertexBufferDesc, &resourceData,
                               m_VertexBuffer.GetAddressOf());
 
+    const D3D11_BUFFER_DESC cbDesc = {
+        .ByteWidth      = sizeof(TransformCB),
+        .Usage          = D3D11_USAGE_DYNAMIC,
+        .BindFlags      = D3D11_BIND_CONSTANT_BUFFER,
+        .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
+    };
+
+    hr = m_d3dDevice->CreateBuffer(&cbDesc, nullptr,
+                                   m_ConstantBuffer.GetAddressOf());
+
     auto const vsBytecode = ReadCSOFile("Shaders_VS.cso");
 
     hr =
@@ -121,7 +131,7 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
     Debug::IF_HR_FAILED(hr, "Failed to create pixel shader");
 }
 
-void Renderer::BeginFrame()
+void Renderer::_ClearFramebuffer()
 {
     const static FLOAT clearColor[4] = {0.0f, 0.5f, 0.0f, 1.0f};
 
@@ -130,6 +140,37 @@ void Renderer::BeginFrame()
 
     m_ImmediateContext->ClearRenderTargetView(m_RenderTargetView.Get(),
                                               clearColor);
+}
+
+void Renderer::BeginFrame()
+{
+    using namespace DirectX;
+
+    static float angle = 0.0f;
+    angle += 0.01f;
+
+    _ClearFramebuffer();
+
+    auto world = XMMatrixRotationY(angle);
+    auto view  = XMMatrixLookAtLH(XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f),
+                                  XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
+                                  XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+    auto proj  = XMMatrixPerspectiveFovLH(
+        XMConvertToRadians(45.0f), // todo: editable fov
+        (float)m_Size[0] / m_Size[1], 0.1f, 100.0f);
+
+    auto wvp = XMMatrixTranspose(world * view * proj);
+
+    D3D11_MAPPED_SUBRESOURCE ms;
+    m_ImmediateContext->Map(m_ConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD,
+                            0, &ms);
+
+    auto *cb                = static_cast<TransformCB *>(ms.pData);
+    cb->worldViewProjection = wvp;
+
+    m_ImmediateContext->Unmap(m_ConstantBuffer.Get(), 0);
+    m_ImmediateContext->VSSetConstantBuffers(0, 1,
+                                             m_ConstantBuffer.GetAddressOf());
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;

@@ -39,7 +39,7 @@ void Error(std::string_view msg)
     ExitProcess(1);
 }
 
-void Debug::IF_HR_FAILED(HRESULT hr, std::string_view msg)
+void Debug::hr_assert(HRESULT hr, std::string_view msg)
 {
     if (FAILED(hr))
         Error(std::format("{} (HRESULT: {:#0x})", msg,

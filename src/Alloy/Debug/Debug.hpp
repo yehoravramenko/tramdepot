@@ -16,5 +16,5 @@ enum class LogLevel
 
 ALLOY_API void Log(std::string_view msg, LogLevel logLevel = LogLevel::Message);
 [[noreturn]] ALLOY_API void Error(std::string_view msg);
-[[noreturn]] void IF_HR_FAILED(HRESULT hr, std::string_view msg);
+[[noreturn]] void hr_assert(HRESULT hr, std::string_view msg);
 } // namespace Alloy::Debug

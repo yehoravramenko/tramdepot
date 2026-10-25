@@ -1,12 +1,13 @@
 #include "ShaderUtils.hpp"
-#include <fstream>
-#include <Debug/Debug.hpp>
+#include "Debug/Debug.hpp"
 
-namespace Alloy
+#include <fstream>
+
+namespace Alloy::ShaderUtils
 {
-std::vector<char> ReadCSOFile(const std::string &filepath)
+std::vector<char> ReadCSOFile(std::string_view filepath)
 {
-    std::ifstream shaderFile(filepath, std::ios::binary | std::ios::ate);
+    std::ifstream shaderFile(filepath.data(), std::ios::binary | std::ios::ate);
     if (!shaderFile.is_open())
     {
         Debug::Error("Failed to open shader binary");
@@ -25,4 +26,4 @@ std::vector<char> ReadCSOFile(const std::string &filepath)
 
     return buffer;
 }
-} // namespace Alloy
+} // namespace Alloy::ShaderUtils

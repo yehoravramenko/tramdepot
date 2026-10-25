@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 #include "Debug/Debug.hpp"
-#include "ShaderUtils.hpp"
+#include "Shaders/ShaderUtils.hpp"
 
 #include <D3DCompiler.h>
 #include <DirectXMath.h>
@@ -62,17 +62,17 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
         m_SwapChain.GetAddressOf(), m_d3dDevice.GetAddressOf(), &featureLevel,
         m_ImmediateContext.GetAddressOf());
 
-    Debug::IF_HR_FAILED(hr, "Failed to create D3D11 device.");
+    Debug::hr_assert(hr, "Failed to create D3D11 device.");
 
     ComPtr<ID3D11Texture2D> backBuffer;
     hr = m_SwapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
 
-    Debug::IF_HR_FAILED(hr, "Failed to query back buffer");
+    Debug::hr_assert(hr, "Failed to query back buffer");
 
     hr = m_d3dDevice->CreateRenderTargetView(backBuffer.Get(), nullptr,
                                              m_RenderTargetView.GetAddressOf());
 
-    Debug::IF_HR_FAILED(hr, "Failed to create render target view");
+    Debug::hr_assert(hr, "Failed to create render target view");
 
     const D3D11_VIEWPORT viewport = {
         .TopLeftX = 0.0f,
@@ -96,7 +96,7 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
                               m_VertexBuffer.GetAddressOf());
 
     const D3D11_BUFFER_DESC cbDesc = {
-        .ByteWidth      = sizeof(TransformCB),
+        .ByteWidth      = sizeof(VS_CONSTANT_BUFFER),
         .Usage          = D3D11_USAGE_DYNAMIC,
         .BindFlags      = D3D11_BIND_CONSTANT_BUFFER,
         .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE,
@@ -105,30 +105,8 @@ Renderer::Renderer(HWND windowHandle, const std::array<int, 2> &windowSize)
     hr = m_d3dDevice->CreateBuffer(&cbDesc, nullptr,
                                    m_ConstantBuffer.GetAddressOf());
 
-    auto const vsBytecode = ReadCSOFile("Shaders_VS.cso");
-
-    hr =
-        m_d3dDevice->CreateVertexShader(vsBytecode.data(), vsBytecode.size(),
-                                        nullptr, m_VertexShader.GetAddressOf());
-    Debug::IF_HR_FAILED(hr, "Failed to create vertex shader");
-
-    constexpr D3D11_INPUT_ELEMENT_DESC layout[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-         D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
-         D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
-
-    hr = m_d3dDevice->CreateInputLayout(layout, ARRAYSIZE(layout),
-                                        vsBytecode.data(), vsBytecode.size(),
-                                        m_InputLayout.GetAddressOf());
-
-    Debug::IF_HR_FAILED(hr, "Failed to create input layout");
-
-    auto const psBytecode = ReadCSOFile("Shaders_PS.cso");
-    m_d3dDevice->CreatePixelShader(psBytecode.data(), psBytecode.size(),
-                                   nullptr, m_PixelShader.GetAddressOf());
-    Debug::IF_HR_FAILED(hr, "Failed to create pixel shader");
+    m_dummyShader = std::make_unique<Shader>(
+        m_d3dDevice.Get(), "Shaders_VS.cso", "Shaders_PS.cso");
 }
 
 void Renderer::_ClearFramebuffer()
@@ -156,7 +134,7 @@ void Renderer::BeginFrame()
                                   XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
                                   XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
     auto proj  = XMMatrixPerspectiveFovLH(
-        XMConvertToRadians(45.0f), // todo: editable fov
+        XMConvertToRadians(45.0f), // TODO: editable fov
         (float)m_Size[0] / m_Size[1], 0.1f, 100.0f);
 
     auto wvp = XMMatrixTranspose(world * view * proj);
@@ -165,7 +143,7 @@ void Renderer::BeginFrame()
     m_ImmediateContext->Map(m_ConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD,
                             0, &ms);
 
-    auto *cb                = static_cast<TransformCB *>(ms.pData);
+    auto *cb                = static_cast<VS_CONSTANT_BUFFER *>(ms.pData);
     cb->worldViewProjection = wvp;
 
     m_ImmediateContext->Unmap(m_ConstantBuffer.Get(), 0);
@@ -174,9 +152,7 @@ void Renderer::BeginFrame()
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
-    m_ImmediateContext->IASetInputLayout(m_InputLayout.Get());
-    m_ImmediateContext->VSSetShader(m_VertexShader.Get(), nullptr, 0);
-    m_ImmediateContext->PSSetShader(m_PixelShader.Get(), nullptr, 0);
+    m_dummyShader->Bind(m_ImmediateContext.Get());
     m_ImmediateContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(),
                                            &stride, &offset);
     m_ImmediateContext->IASetPrimitiveTopology(
@@ -187,7 +163,7 @@ void Renderer::BeginFrame()
 
 void Renderer::EndFrame()
 {
-    m_SwapChain->Present(1, 0);
+    m_SwapChain->Present(0, 0);
 }
 
 } // namespace Alloy

@@ -1,17 +1,18 @@
 #pragma once
+#include "Core/ComPtr.hpp"
+#include "Shaders/Shader.hpp"
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <wrl/client.h>
 #include <d3d11.h>
 #include <DirectXMath.h>
 
 #include <array>
-
-using Microsoft::WRL::ComPtr;
+#include <memory>
 
 namespace Alloy
 {
-struct alignas(16) TransformCB
+struct alignas(16) VS_CONSTANT_BUFFER
 {
     DirectX::XMMATRIX worldViewProjection;
 };
@@ -36,9 +37,7 @@ class Renderer
     ComPtr<ID3D11Buffer> m_VertexBuffer;
     ComPtr<ID3D11Buffer> m_ConstantBuffer;
 
-    ComPtr<ID3D11InputLayout> m_InputLayout;
-    ComPtr<ID3D11VertexShader> m_VertexShader;
-    ComPtr<ID3D11PixelShader> m_PixelShader;
+    std::unique_ptr<Shader> m_dummyShader;
 
     void _ClearFramebuffer();
 };

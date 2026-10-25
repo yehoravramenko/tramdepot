@@ -1,4 +1,4 @@
-cbuffer MatrixBuffer : register(b0)
+cbuffer VS_CONSTANT_BUFFER : register(b0)
 {
     matrix g_WorldViewProjection;
 };
